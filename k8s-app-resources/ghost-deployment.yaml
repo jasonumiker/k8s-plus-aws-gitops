@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ghost
+  namespace: ghost
+  labels:
+    app: ghost
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: ghost.jasonumiker.com
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ghost
+  template:
+    metadata:
+      labels:
+        app: ghost
+    spec:
+      containers:
+      - name: ghost
+        image: ghost:3.0.2-alpine
+        ports:
+        - containerPort: 2368
+        env:
+          - name: url
+            value: "https://ghost.jasonumiker.com"
+          - name: database__client
+            value: "mysql"
+          - name: database__connection__host
+            valueFrom:
+              secretKeyRef:
+                name: ghost-database
+                key: host
+          - name: database__connection__user
+            valueFrom:
+              secretKeyRef:
+                name: ghost-database
+                key: username
+          - name: database__connection__password
+            valueFrom:
+              secretKeyRef:
+                name: ghost-database
+                key: password            
+          - name: database__connection__database
+            valueFrom:
+              secretKeyRef:
+                name: ghost-database
+                key: dbname
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1"
+          limits:
+            memory: "2Gi"
+            cpu: "2"
