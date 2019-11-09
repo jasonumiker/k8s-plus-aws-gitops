@@ -13,6 +13,7 @@ chmod -R u+x *.sh
 cd aws-infrastructure
 ./create-vpc-and-eks.sh
 cd ../aws-app-resources
+export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r '.Account')
 cdk deploy --require-approval never
 cd ../k8s-infrastructure
 ./install-helm.sh
