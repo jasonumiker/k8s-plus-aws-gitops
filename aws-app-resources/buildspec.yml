@@ -8,6 +8,7 @@ phases:
       python: 3.7
   pre_build:
     commands:
+      - cd aws-app-resources
       - pip install --upgrade aws-cdk.core
       - pip install --upgrade -r requirements.txt
       - export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r '.Account')
