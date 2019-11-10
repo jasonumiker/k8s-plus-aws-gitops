@@ -6,6 +6,8 @@ sudo curl --silent --location -o /usr/local/bin/aws-iam-authenticator "https://a
 sudo chmod +x /usr/local/bin/aws-iam-authenticator
 sudo curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 sudo mv -v /tmp/eksctl /usr/local/bin
+sudo curl --location -o /usr/local/bin/fluxctl "https://github.com/fluxcd/flux/releases/download/1.15.0/fluxctl_linux_amd64"
+sudo chmod +x /usr/local/bin/fluxctl
 sudo curl -L https://git.io/get_helm.sh | bash
 curl -sL https://rpm.nodesource.com/setup_12.x | sudo -E bash -
 sudo yum install jq nodejs python37 -y
@@ -26,13 +28,12 @@ cdk deploy --require-approval never
 cd ../k8s-infrastructure
 chmod u+x *.sh
 ./install-helm.sh
-sleep 10
-./install-external-secrets.sh
-kubectl apply -f externaldns.yaml
-cd ../k8s-app-resources
-chmod u+x *.sh
-./update-external-secret.sh
+./install-flux.sh
 kubectl apply -f ghost-namespace.yaml
+#kubectl apply -f externaldns.yaml - requires Route53 to be set up with a 'real' domain name
+./install-external-secrets.sh
+./update-ghost-external-secret.sh
 kubectl apply -f ghost-externalsecret.yaml
-kubectl apply -f ghost-service.yaml
-kubectl apply -f ghost-deployment.yaml
+#cd ../k8s-app-resources
+#kubectl apply -f ghost-service.yaml
+#kubectl apply -f ghost-deployment.yaml
