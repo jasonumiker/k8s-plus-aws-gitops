@@ -14,3 +14,7 @@ k8s-plus-aws-gitops/
   - k8s-app-resources: for the Kubernetes and application-specific resources (Deployments, Services, etc.)
   - dockerbuild: for the Dockerfile(s) and associated items required to build the app into a container such as the CodeBuild buildspec.yml(s)
 ````
+
+To start, the aws-app-resources is GitOps enabled with CodePipeline and the k8s-app-resources is GitOps enabled with flux.
+
+The aws-infrastructure and k8s-infrastructure are being treated as a bit more imperitive as they will not change often and involve CLIs to provision/upgrade. I will explore how to extend full GitOps to them in the next phase.
