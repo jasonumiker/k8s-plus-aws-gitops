@@ -5,12 +5,13 @@ from aws_cdk import (
     aws_codepipeline_actions as codepipeline_actions,
     core
 )
+import os
 
 class AWSAppResourcesPipeline(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
-
+        
         # Create IAM Role For CodeBuild
         codebuild_role = iam.Role(
             self, "BuildRole",
@@ -43,7 +44,8 @@ class AWSAppResourcesPipeline(core.Stack):
                     action_name="SourceCodeRepo",
                     owner="jasonumiker",
                     repo="k8s-plus-aws-gitops",
-                    output=artifact
+                    output=artifact,
+                    oauth_token=core.SecretValue.secrets_manager('github-token')
                 )
             ]
         )
