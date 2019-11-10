@@ -6,10 +6,11 @@ phases:
   install:
     runtime-versions:
       python: 3.7
+      nodejs: 10
   pre_build:
     commands:
       - cd aws-app-resources
-      - sudo npm install -g aws-cdk
+      - npm install -g aws-cdk
       - pip install --upgrade aws-cdk.core
       - pip install --upgrade -r requirements.txt
       - export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r '.Account')
