@@ -10,18 +10,21 @@ sudo curl --location -o /usr/local/bin/fluxctl "https://github.com/fluxcd/flux/r
 sudo chmod +x /usr/local/bin/fluxctl
 sudo curl -L https://git.io/get_helm.sh | bash
 sudo yum install jq -y
-#curl -sL https://rpm.nodesource.com/setup_12.x | sudo -E bash -
-#sudo yum install nodejs python37 -y
-#sudo npm install -g aws-cdk
-#sudo rm /usr/bin/python
-#sudo ln -s /usr/bin/python3.7 /usr/bin/python
-#sudo ln -s /usr/bin/pip3.7 /usr/bin/pip
-#sudo pip install --upgrade aws-cdk.core
+curl -sL https://rpm.nodesource.com/setup_12.x | sudo -E bash -
+sudo yum install nodejs python37 -y
+sudo npm install -g aws-cdk
+sudo rm /usr/bin/python
+sudo ln -s /usr/bin/python3.7 /usr/bin/python
+sudo ln -s /usr/bin/pip3.7 /usr/bin/pip
+sudo pip install --upgrade aws-cdk.core
 ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa
 export AWS_DEFAULT_REGION=ap-southeast-2
 cd aws-infrastructure
 chmod u+x *.sh
 ./create-vpc-and-eks.sh
+sudo pip install --upgrade -r requirements.txt
+aws secretsmanager create-secret --name github-token --secret-string "YOUR_TOKEN"
+cdk deploy --require-approval never
 #cd ../aws-app-resources
 #export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r '.Account')
 #sudo pip install --upgrade -r requirements.txt

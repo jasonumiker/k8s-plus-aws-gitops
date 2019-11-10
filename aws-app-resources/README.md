@@ -31,4 +31,4 @@ One of the nice things about the CDK is that we don't need it to have created th
 * Run `cdk deploy --require-approval never` to deloy this required RDS to our account and VPC
 
 ## (Optional) How to deploy via CodeBuild
-There is a buildspec.yml file in the folder which instructs CodeBuild to deploy this on your behalf. A pipeline watching this repo for changes and then invokes that CodeBuild job is in the ../aws-infrastrucuture folder.
+There is a buildspec.yml file in the folder which instructs CodeBuild to deploy this on your behalf. A pipeline watching this repo for changes and then invokes that CodeBuild job is in the ../aws-infrastrucuture folder as CDK.
