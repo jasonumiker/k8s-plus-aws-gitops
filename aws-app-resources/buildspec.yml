@@ -3,6 +3,10 @@
 version: 0.2
 
 phases:
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
   pre_build:
     commands:
       - pip install --upgrade aws-cdk.core
