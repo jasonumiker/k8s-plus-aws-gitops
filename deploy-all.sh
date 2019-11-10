@@ -9,8 +9,9 @@ sudo mv -v /tmp/eksctl /usr/local/bin
 sudo curl --location -o /usr/local/bin/fluxctl "https://github.com/fluxcd/flux/releases/download/1.15.0/fluxctl_linux_amd64"
 sudo chmod +x /usr/local/bin/fluxctl
 sudo curl -L https://git.io/get_helm.sh | bash
+sudo yum install jq -y
 #curl -sL https://rpm.nodesource.com/setup_12.x | sudo -E bash -
-#sudo yum install jq nodejs python37 -y
+#sudo yum install nodejs python37 -y
 #sudo npm install -g aws-cdk
 #sudo rm /usr/bin/python
 #sudo ln -s /usr/bin/python3.7 /usr/bin/python

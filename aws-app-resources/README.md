@@ -29,3 +29,6 @@ One of the nice things about the CDK is that we don't need it to have created th
 * Run `cdk synth` to generate the `cdk.out/GhostDBStack.template.json` template file
 * (Optional) Have a look at the `cdk.out/GhostDBStack.template.json` template fie - this is the CloudFormation that CDK is about to deploy to our account.
 * Run `cdk deploy --require-approval never` to deloy this required RDS to our account and VPC
+
+## (Optional) How to deploy via CodeBuild
+There is a buildspec.yml file in the folder which instructs CodeBuild to deploy this on your behalf. A pipeline watching this repo for change and invoking that is in the ../aws-infrastrucuture folder.
