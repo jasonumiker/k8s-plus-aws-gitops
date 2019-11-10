@@ -29,7 +29,7 @@ class GhostDBStack(core.Stack):
             self, "RDS",
             deletion_protection=False,
             removal_policy=core.RemovalPolicy.DESTROY,
-            multi_az=True,
+            multi_az=False,
             allocated_storage=20,
             engine=rds.DatabaseInstanceEngine.MYSQL,
             engine_version="8.0.16",
