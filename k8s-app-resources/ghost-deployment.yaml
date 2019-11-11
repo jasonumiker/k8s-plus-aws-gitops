@@ -22,7 +22,7 @@ spec:
         - containerPort: 2368
         env:
           - name: url
-            value: "https://ghost.jasonumiker.com"
+            value: "http://ghost.jasonumiker.com"
           - name: database__client
             value: "mysql"
           - name: database__connection__host
