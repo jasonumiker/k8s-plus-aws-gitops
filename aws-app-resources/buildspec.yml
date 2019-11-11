@@ -17,7 +17,7 @@ phases:
   build:
     commands:
       - echo CDK Deploy started on `date`
-      - cdk deploy
+      - cdk deploy --require-approval never
   post_build:
     commands:
       - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
