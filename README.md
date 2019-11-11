@@ -1,8 +1,8 @@
-# An exmaple approach for Kubernetes and AWS GitOps
+# An example approach for Kubernetes and AWS GitOps
 
 This is a prototype for an approach for GitOps that covers both AWS and Kubernetes that enables the straightforward use of the the best tools and managed services across both. 
 
-It representts the AWS-specific resources (such as VPCs and databases) via CDK/CloudFormation in one set of folders (one for base infrastructure that changes rarely and one for the application-speific backing resources that would change more often) and the same for the Kubernetes equivilents.
+It represents the AWS-specific resources (such as VPCs and databases) via CDK/CloudFormation in one set of folders (one for base infrastructure that changes rarely and one for the application-speific backing resources that would change more often) and the same for the Kubernetes equivilents.
 
 The folder structure is:
 
