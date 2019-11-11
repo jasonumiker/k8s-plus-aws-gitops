@@ -41,3 +41,5 @@ kubectl apply -f ghost-externalsecret.yaml
 #cd ../k8s-app-resources
 #kubectl apply -f ghost-service.yaml
 #kubectl apply -f ghost-deployment.yaml
+fluxctl --k8s-fwd-ns=flux identity
+# Add the result of the above to your GitHub as an SSH key
