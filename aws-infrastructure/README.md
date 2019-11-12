@@ -26,5 +26,8 @@ TODO: Replace with CDK for the VPC and EKS cluster creation. Went with native Cl
 ## Set up the CodeBuild/CodePipeline for GitHub
 There is a CDK example for the creation of a GitOps pipeline for the aws-app-resources folder - in this case for a MySQL RDS. Any merges to master will (re)run a cdk deploy.
 
-1. Set up the GitHub OAUTH token in Secrets manager with the command `aws secretsmanager create-secret --name github-token --secret-string "YOUR_TOKEN"`
+1. Fork the following GitHub project - https://github.com/jasonumiker/k8s-plus-aws-gitops 
+1. Create an OAUTH Token in GitHub
+1. Upload that OAUTH token in Secrets manager with the command `aws secretsmanager create-secret --name github-token --secret-string "YOUR_TOKEN"` - replacing YOUR_TOKEN with a OAUTH token from your GitHub.
+1. Update the `owner` to your GitHub Username
 1. Run a `cdk deploy`
