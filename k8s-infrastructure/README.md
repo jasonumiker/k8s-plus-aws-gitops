@@ -30,3 +30,9 @@ The Service or Ingress will create a Load Balancer with a long random name in th
 
 To install ExternalDNS:
 1. Run `kubectl apply -f exernaldns.yaml`
+
+## CloudWatch Container Insights
+You can deploy a pair of agents (cloudwatch-agent and fluentd) to the cluster as a DaemonSets that will send metrics about the cluster as well as their logs to CloudWatch.
+
+To install that:
+1. Run `./install-container-insights.sh`
