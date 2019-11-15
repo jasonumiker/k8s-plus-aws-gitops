@@ -36,9 +36,6 @@ class GhostDBStack(core.Stack):
             master_username="root",
             database_name="ghost",
             vpc=vpc,
-            vpc_placement=vpc.select_subnets(
-                subnet_type=ec2.SubnetType.PRIVATE
-            ),
             instance_class=ec2.InstanceType.of(
                 ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
             security_groups=[security_group]
