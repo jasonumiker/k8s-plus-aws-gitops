@@ -19,4 +19,4 @@ spec:
           - path: /*
             backend:
               serviceName: ghost
-              servicePort: 80
+              servicePort: 2368
