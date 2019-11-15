@@ -36,3 +36,9 @@ You can deploy a pair of agents (cloudwatch-agent and fluentd) to the cluster as
 
 To install that:
 1. Run `./install-container-insights.sh`
+
+## ALB Ingress Controller
+Instead of using the Classic ELB your applications can leverage the ALB via the ALB Ingress Controller
+
+To install that:
+1. Run `./install-alb-ingress.sh`

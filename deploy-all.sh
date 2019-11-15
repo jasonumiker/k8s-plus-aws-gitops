@@ -39,6 +39,7 @@ kubectl apply -f ghost-namespace.yaml
 ./update-ghost-external-secret.sh
 kubectl apply -f ghost-externalsecret.yaml
 ./install-container-insights.sh
+./install-alb-ingress.sh
 #cd ../k8s-app-resources
 #kubectl apply -f ghost-service.yaml
 #kubectl apply -f ghost-deployment.yaml

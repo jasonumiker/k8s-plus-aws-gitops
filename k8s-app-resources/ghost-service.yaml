@@ -3,12 +3,10 @@ kind: Service
 metadata:
   name: ghost
   namespace: ghost
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: ghost.jasonumiker.com  
 spec:
   selector:
     app: ghost
   ports:
-    - port: 80
+    - port: 2368
       targetPort: 2368
-  type: LoadBalancer
+  type: ClusterIP
