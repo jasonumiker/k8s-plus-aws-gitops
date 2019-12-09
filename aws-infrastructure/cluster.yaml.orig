@@ -9,19 +9,15 @@ metadata:
 vpc:
   subnets:
     private:
-      us-west-2a:
-        id: "Quick-Start-VPC-PrivateSubnet1AID"
-      us-west-2b:
-        id: "Quick-Start-VPC-PrivateSubnet2AID"
-      us-west-2c:
-        id: "Quick-Start-VPC-PrivateSubnet3AID"
+      AWS_DEFAULT_REGIONa:
+        id: "PrivateSubnet1ID"
+      AWS_DEFAULT_REGIONb:
+        id: "PrivateSubnet2ID"
     public:
-      us-west-2a:
-        id: "Quick-Start-VPC-PublicSubnet1ID"
-      us-west-2b:
-        id: "Quick-Start-VPC-PublicSubnet2ID"
-      us-west-2c:
-        id: "Quick-Start-VPC-PublicSubnet3ID"
+      AWS_DEFAULT_REGIONa:
+        id: "PublicSubnet1ID"
+      AWS_DEFAULT_REGIONb:
+        id: "PublicSubnet2ID"
 
 cloudWatch:
   clusterLogging:
@@ -32,30 +28,11 @@ cloudWatch:
       - "controllerManager"
       - "scheduler"
 
-nodeGroups:
-  - name: ng
-    instanceType: m5.xlarge
-    desiredCapacity: 1
-    privateNetworking: true
-    volumeSize: 100
-    volumeType: gp2
-    volumeEncrypted: true
-    ssh:
-      publicKeyPath: ~/.ssh/id_rsa.pub
-    iam:
-      attachPolicyARNs:
-        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
-      withAddonPolicies:
-        imageBuilder: true
-        autoScaler: true
-        externalDNS: true
-        certManager: true
-        appMesh: true
-        ebs: true
-        fsx: true
-        efs: true
-        albIngress: true
-        xRay: true
-        cloudWatch: true
+fargateProfiles:
+  - name: default
+    selectors:
+      - namespace: default
+      - namespace: kube-system
+  - name: ghost
+    selectors:
+      - namespace: ghost

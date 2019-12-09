@@ -1,3 +1,3 @@
 { 
-    "app": "python aws-app-resources-pipeline.py"
+    "app": "python infrastructure-stacks.py"
 }

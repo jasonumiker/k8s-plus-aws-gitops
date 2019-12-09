@@ -1,0 +1,36 @@
+# AWS CodeBuild buildspec to deploy EKS using eksctl
+
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+  pre_build:
+    commands:
+      - echo Setting up required prerequisites
+      - pip install --upgrade awscli
+      - curl --silent --location -o /usr/local/bin/kubectl "https://amazon-eks.s3-us-west-2.amazonaws.com/1.14.6/2019-08-22/bin/linux/amd64/kubectl"
+      - chmod +x /usr/local/bin/kubectl
+      - curl --silent --location -o /usr/local/bin/aws-iam-authenticator "https://amazon-eks.s3-us-west-2.amazonaws.com/1.14.6/2019-08-22/bin/linux/amd64/aws-iam-authenticator"
+      - chmod +x /usr/local/bin/aws-iam-authenticator
+      - curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
+      - mv -v /tmp/eksctl /usr/local/bin
+      - chmod +x /usr/local/bin/eksctl
+  build:
+    commands:
+      - echo Assigning IAM Instance Profile to Cloud9 EC2 Instance on `date`
+      - export CLOUD9ID=$(aws ec2 describe-instances --filter "Name=tag:Name,Values=aws-cloud9*" --query Reservations[0].Instances[0].InstanceId --output text)
+      - aws ec2 associate-iam-instance-profile --instance-id $CLOUD9ID --iam-instance-profile Name=$INSTANCEPROFILEID
+      - echo EKS Provisioning started on `date`
+      - cp cluster.yaml.orig cluster.yaml
+      - sed -i "s/PrivateSubnet1ID/$PrivateSubnet1ID/g" cluster.yaml
+      - sed -i "s/PrivateSubnet2ID/$PrivateSubnet2ID/g" cluster.yaml
+      - sed -i "s/PublicSubnet1ID/$PublicSubnet1ID/g" cluster.yaml
+      - sed -i "s/PublicSubnet2ID/$PublicSubnet2ID/g" cluster.yaml
+      - sed -i "s/AWS_DEFAULT_REGION/$AWS_DEFAULT_REGION/g" cluster.yaml
+      - eksctl create cluster -f cluster.yaml
+  post_build:
+    commands:
+      - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
+      - echo EKS Provisioning successfully completed on `date`

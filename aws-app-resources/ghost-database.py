@@ -12,7 +12,7 @@ class GhostDBStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        vpc = ec2.Vpc.from_lookup(self, 'VPC', vpc_name="VPC")
+        vpc = ec2.Vpc.from_lookup(self, 'VPC', vpc_name="EnvironmentStack/VPC")
 
         security_group = ec2.SecurityGroup(
             self, "Ghost-DB-SG",
