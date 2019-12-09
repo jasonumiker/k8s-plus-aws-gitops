@@ -23,6 +23,7 @@ phases:
       - export CLOUD9ID=$(aws ec2 describe-instances --filter "Name=tag:Name,Values=aws-cloud9*" --query Reservations[0].Instances[0].InstanceId --output text)
       - aws ec2 associate-iam-instance-profile --instance-id $CLOUD9ID --iam-instance-profile Name=$INSTANCEPROFILEID
       - echo EKS Provisioning started on `date`
+      - cd aws-infrastructure
       - cp cluster.yaml.orig cluster.yaml
       - sed -i "s/PrivateSubnet1ID/$PrivateSubnet1ID/g" cluster.yaml
       - sed -i "s/PrivateSubnet2ID/$PrivateSubnet2ID/g" cluster.yaml
