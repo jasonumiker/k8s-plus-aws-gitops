@@ -1,0 +1,3 @@
+#!/bin/bash
+kubectl delete -f https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.4/docs/examples/rbac-role.yaml
+curl https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.4/docs/examples/alb-ingress-controller.yaml | sed "s/# - --cluster-name=devCluster/- --cluster-name=cluster/;s/# - --aws-region=us-west-1/- --aws-region=$AWS_DEFAULT_REGION/" | kubectl delete -f -

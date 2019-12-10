@@ -6,7 +6,7 @@ metadata:
   labels:
     app: ghost
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: ghost
@@ -22,7 +22,7 @@ spec:
         - containerPort: 2368
         env:
           - name: url
-            value: "http://ghost.jasonumiker.com"
+            value: "http://e5c56994-ghost-ghost-d65d-341395319.ap-northeast-1.elb.amazonaws.com"
           - name: database__client
             value: "mysql"
           - name: database__connection__host

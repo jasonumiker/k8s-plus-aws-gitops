@@ -8,5 +8,8 @@ sudo curl --silent --location "https://github.com/weaveworks/eksctl/releases/dow
 sudo mv -v /tmp/eksctl /usr/local/bin
 sudo curl --location -o /usr/local/bin/fluxctl "https://github.com/fluxcd/flux/releases/download/1.15.0/fluxctl_linux_amd64"
 sudo chmod +x /usr/local/bin/fluxctl
-sudo curl -L https://git.io/get_helm.sh | bash
+sudo curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 sudo yum install jq -y
+export AWS_DEFAULT_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep -oP '\"region\"[[:space:]]*:[[:space:]]*\"\K[^\"]+')
+echo export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION > ~/.bashrc
+aws eks update-kubeconfig --name cluster
