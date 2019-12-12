@@ -7,4 +7,4 @@ fluxctl install \
 --git-url=git@github.com:${GHUSER}/k8s-plus-aws-gitops \
 --git-path=k8s-app-resources \
 --git-readonly=true \
---namespace=flux | kubectl apply -f -
+--namespace=default | kubectl apply -f -
