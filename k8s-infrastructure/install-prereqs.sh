@@ -6,7 +6,7 @@ sudo curl --silent --location -o /usr/local/bin/aws-iam-authenticator "https://a
 sudo chmod +x /usr/local/bin/aws-iam-authenticator
 sudo curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 sudo mv -v /tmp/eksctl /usr/local/bin
-sudo curl --location -o /usr/local/bin/fluxctl "https://github.com/fluxcd/flux/releases/download/1.15.0/fluxctl_linux_amd64"
+sudo curl --location -o /usr/local/bin/fluxctl "https://github.com/fluxcd/flux/releases/download/1.16.0/fluxctl_linux_amd64"
 sudo chmod +x /usr/local/bin/fluxctl
 sudo curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 sudo yum install jq -y
