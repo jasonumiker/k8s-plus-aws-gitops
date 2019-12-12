@@ -20,7 +20,6 @@ phases:
       - curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
       - curl --location -o /usr/local/bin/fluxctl "https://github.com/fluxcd/flux/releases/download/1.16.0/fluxctl_linux_amd64"
       - chmod +x /usr/local/bin/fluxctl
-      - yum install jq -y
   build:
     commands:
       - echo Assigning IAM Instance Profile to Cloud9 EC2 Instance on `date`
