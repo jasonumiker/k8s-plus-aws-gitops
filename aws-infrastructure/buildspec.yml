@@ -35,7 +35,7 @@ phases:
       - sed -i "s/AWS_DEFAULT_REGION/$AWS_DEFAULT_REGION/g" cluster.yaml
       - eksctl create cluster -f cluster.yaml
       - echo k8s-infrastructure Provisioning started on `date`
-      - cd ../k8s-infrastrcture
+      - cd ../k8s-infrastructure
       - ./install-alb-ingress.sh
       - ./install-external-secrets.sh
       - kubectl apply -f ghost-namespace.yaml
