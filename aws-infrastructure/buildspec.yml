@@ -40,7 +40,7 @@ phases:
       - ./install-external-secrets.sh
       - kubectl apply -f ghost-namespace.yaml
       - ./update-ghost-external-secret.sh
-      - kubectl apply -f ghost-external-secret.yaml
+      - kubectl apply -f ghost-externalsecret.yaml
       - kubectl apply -f externaldns.yaml
       - ./install-flux.sh
   post_build:
