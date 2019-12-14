@@ -110,7 +110,7 @@ iam:
 vpc:
   clusterEndpoints:
     publicAccess: true
-    privateAccess: true
+    privateAccess: false
   subnets:
     private:
       AWS_DEFAULT_REGIONa:

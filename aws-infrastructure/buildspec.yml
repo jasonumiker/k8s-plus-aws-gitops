@@ -40,9 +40,10 @@ phases:
       - ./install-external-secrets.sh
       - kubectl apply -f ghost-namespace.yaml
       - ./update-ghost-external-secret.sh
-      - kubectl apply -f ghost-externalsecret.yaml
       - kubectl apply -f externaldns.yaml
       - ./install-flux.sh
+      - sleep 20
+      - kubectl apply -f ghost-externalsecret.yaml
   post_build:
     commands:
       - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
