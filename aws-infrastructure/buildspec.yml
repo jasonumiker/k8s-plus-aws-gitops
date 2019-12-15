@@ -37,12 +37,12 @@ phases:
       - echo k8s-infrastructure Provisioning started on `date`
       - cd ../k8s-infrastructure
       - ./install-alb-ingress.sh
-      - ./install-external-secrets.sh
       - kubectl apply -f ghost-namespace.yaml
-      - ./update-ghost-external-secret.sh
       - kubectl apply -f externaldns.yaml
       - ./install-flux.sh
-      - sleep 20
+      - ./update-ghost-external-secret.sh
+      - ./install-external-secrets.sh
+      - kubectl -n default wait --for condition=established --timeout=120s crd/externalsecrets.kubernetes-client.io
       - kubectl apply -f ghost-externalsecret.yaml
   post_build:
     commands:
