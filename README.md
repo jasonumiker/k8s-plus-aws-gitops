@@ -31,9 +31,10 @@ I will explore how to extend full GitOps to everything in the next phase.
 ## The interactions between AWS and Kubernetes (via a couple Operators/CRDs)
 
 There are basically two main workflows that are happening between AWS and Kubernetes here:
+
 1. Secrets upserting / syncronisation
-  1. First the CDK creates a secret with the password of our RDS
-  1. Then The External Secrets Controller retrieves this secret and puts it into a Kubernetes Secret our pod spec references as Environment Variables into the container(s) to connect to its database.
+    1. First the CDK creates a secret with the password of our RDS
+    1. Then The External Secrets Controller retrieves this secret and puts it into a Kubernetes Secret our pod spec references as Environment Variables into the container(s) to connect to its database.
 1. Ingress Network Routing
-  1. First the ALB Ingress controller creates an ALB and exposes our service via the ALB by updating the Target Group with VPC-native Pod IPs (which is more efficient than NATing through the Hosts with a NodePort on each host)
-  1. Then the External DNS Controller updates a CNAME to the ALB for the service with the 'real' name/FQDN that we want to expose it to the Internet.
+    1. First the ALB Ingress controller creates an ALB and exposes our service via the ALB by updating the Target Group with VPC-native Pod IPs (which is more efficient than NATing through the Hosts with a NodePort on each host)
+    1. Then the External DNS Controller updates a CNAME to the ALB for the service with the 'real' name/FQDN that we want to expose it to the Internet.
