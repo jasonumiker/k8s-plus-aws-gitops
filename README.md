@@ -4,10 +4,14 @@ This is a prototype for an approach for GitOps that covers both AWS Managed Serv
 
 It represents the AWS-specific resources (such as VPCs, EKS clusters and databases) via CDK/CloudFormation in one set of folders and another set for the Kubernetes equivalents. There are then two separate tools ([CodePipeline](https://aws.amazon.com/codepipeline/) and [Flux](https://github.com/fluxcd/flux)) that reconcile the different types of declarative Infrastructure-as-Code in this project - but all the end-user needs to know is to push/merge their changes to the Git repo.
 
+It is an example or prototype for an approach that is mostly option 1 (Kubernetes and the cloud are managed separately) with a little option 2 (managing the cloud from Kubernetes with Operators) from my recent blog post - https://medium.com/@jason.umiker/the-three-paths-of-kubernetes-in-the-cloud-a6e88a321e2e.
+
+I'd argue that it is still really option 1 because it allows for, if not encourages, CloudFormation/CDK for the managed cloud services like RDS rather than trying to do everything with Operators. Where it uses Operators it is to do things like update CNAMEs and manage Targets for an ALB rather than fully abstract the underlying cloud.
+
 ![](architecture-diagram.png)
 ![](architecture-diagram-2.png)
 
-The folder structure is:
+## The GitOps folder structure is:
 
 ```
 k8s-plus-aws-gitops/
@@ -18,7 +22,18 @@ k8s-plus-aws-gitops/
   - dockerbuild: for the Dockerfile(s) and associated items required to build the app into a container such as the CodeBuild buildspec.yml(s)
 ````
 
-To start, the aws-app-resources is GitOps enabled with CodePipeline and the k8s-app-resources is GitOps enabled with Flux.
+To start, the aws-app-resources is GitOps enabled with AWS CodePipeline and the k8s-app-resources is GitOps enabled with Weave Flux.
 
-The aws-infrastructure and k8s-infrastructure are being treated as a bit more imperative as they will not change often and involve CLIs to provision/upgrade. The aws-infrastructure folder in particular has a CodePipeline/CodeBuild cannot be re-run once it has been provisioned (is not idempotent) and so should not re-run on upstream git changes as it is. I will explore how to extend full GitOps to them in the next phase.
+The aws-infrastructure and k8s-infrastructure are being treated as a bit more imperative as they will not change often and involve CLIs to provision/upgrade. The aws-infrastructure folder in particular, while it deploys with a CodePipeline/CodeBuild, cannot be re-run once it has been provisioned (is not idempotent) - and so is configured to not re-run on upstream git changes. 
 
+I will explore how to extend full GitOps to everything in the next phase.
+
+## The interactions between AWS and Kubernetes (via a couple Operators/CRDs)
+
+There are basically two main workflows that are happening between AWS and Kubernetes here:
+1. Secrets upserting / syncronisation
+  1. First the CDK creates a secret with the password of our RDS
+  1. Then The External Secrets Controller retrieves this secret and puts it into a Kubernetes Secret our pod spec references as Environment Variables into the container(s) to connect to its database.
+1. Ingress Network Routing
+  1. First the ALB Ingress controller creates an ALB and exposes our service via the ALB by updating the Target Group with VPC-native Pod IPs (which is more efficient than NATing through the Hosts with a NodePort on each host)
+  1. Then the External DNS Controller updates a CNAME to the ALB for the service with the 'real' name/FQDN that we want to expose it to the Internet.
