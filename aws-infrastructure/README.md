@@ -1,33 +1,17 @@
-# Creation of AWS VPC and EKS Cluster
-This example requires an AWS VPC with public and private subnets as well as an EKS cluster. This will result in three CloudFormation Stacks - a VPC, an EKS control plane and an EKS NodeGroup (ASG of Worker Nodes) joined to that control plane.
+# Creation of AWS VPC, EKS Cluster and GitOps CodePipeline for aws-app-resources
+This folder has two CDK stacks:
 
-NOTE: The IAM Role or User that runs this script will permanently 'own' and be a full cluser-admin on the resulting cluster. It is best to have this run as a dedicated role as part of a pipeline.
+1. The `EnvironmentStack` which creates:
+    1. The AWS VPC
+    1. An IAM Role dedicated to cluster creation/administration to own the cluster
+    1. An EKS cluster (by running `eksctl` within `CodeBuild` based on the `buildspec.yml` and `cluster.yaml`)
+    1. A Cloud9 with that IAM Role assigned to serve as a bastion/jumpbox.
+1. The `ResourcesPipelineStack` which create a CI/CD pipeline to provision, and update based on any changes to the content of, the aws-app-resources folder.
 
-## Creation of VPC and EKS cluster 
+Both stacks are defined in the `infrastrucutre-stacks.py` Python CDK file. If you don't want to install CDK to deploy I have taken the two CloudFormation templates it generates - `EnvironmentStack.template.json` and `ResourcesPipelineStack.template.json` - and put them in the folder ready for a standard CloudFormation Deployment as well.
 
-### Prerequisites
-Have the AWS CLI, kubectl, aws-iam-authenticator, eksctl and jq installed.
+These stacks can be deployed into any region that supports both EKS in Fargate Mode as well as Cloud9.
 
-### Setup Instructions
-1. Set the AWS_DEFAULT_REGION environment variable to the region you want such as `export AWS_DEFAULT_REGION=ap-southeast-2`.
-1. (Optional) open the `create-vpc-and-eks.sh` file and change any parameters being passed to the VPC like the CIDRs to suit your environment.
-1. Run `create-vpc-and-eks.sh` which will:
-    1. Create a VPC from the AWS VPC QuickStart template (https://aws.amazon.com/quickstart/architecture/vpc/)
-    1. Copy `cluster.yaml.orig` to `cluster.yaml` then fill in the required envirionment details from the Exports of that VPC Stack as well as the AWS_DEFAULT_REGION environment variable.
-    1. Create an EKS cluster with `eksctl` from the the settings in `cluster.yaml`
+Note that the EnvironmentStack is not idempotent and it cannot be deployed a second time after it's creation. This is because it calls `eksctl` via CodeBuild in a configuration that will fail on re-run. As such I configure the CodePipline to do one initial run on creation then only re-run if invoked manually rather than true GitOps.
 
-### How to make changes post deployment?
-1. If you wanted to change the VPC you'd update the Parameters in the deployed CloudFormation Stack
-    1. NOTE - if you change things that would interfere with the EKS cluster or NodeGroups that might be problematic. CloudFormation should protect you from some of that if there are resources deployed into the VPC and the changes would be disruptive - but be careful.
-1. If you wanted to change the EKS, for example to upgrade the control plane or NodeGroup, then you'd use eksctl and it'd update the underlying CloudFormation stack(s) on your behalf as required.
-
-TODO: Replace with CDK for the VPC and EKS cluster creation. Went with native CloudFormation and eksctl for the time being because EKS support in CDK is experimental and eksctl is mature.
-
-## Set up the CodeBuild/CodePipeline for GitHub
-There is a CDK example for the creation of a GitOps pipeline for the aws-app-resources folder - in this case for a MySQL RDS. Any merges to master will (re)run a cdk deploy.
-
-1. Fork the following GitHub project - https://github.com/jasonumiker/k8s-plus-aws-gitops 
-1. Create an OAUTH Token in GitHub
-1. Upload that OAUTH token in Secrets manager with the command `aws secretsmanager create-secret --name github-token --secret-string "YOUR_TOKEN"` - replacing YOUR_TOKEN with a OAUTH token from your GitHub.
-1. Update the `owner` to your GitHub Username
-1. Run a `cdk deploy`
+I am investigating how to make this true GitOps as well - but will likely just wait until CDK can support everything I need directly (it is currently experimental in CDK atm and I couldn't make it work yet was very familiar with eksctl so went that way) then refactor it to be all CDK.
