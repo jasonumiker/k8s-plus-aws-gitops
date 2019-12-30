@@ -42,7 +42,6 @@ phases:
       - ./install-flux.sh
       - ./update-ghost-external-secret.sh
       - ./install-external-secrets.sh
-      - kubectl -n default wait --for condition=established --timeout=120s crd/externalsecrets.kubernetes-client.io
       - kubectl apply -f ghost-externalsecret.yaml
   post_build:
     commands:
