@@ -45,6 +45,12 @@ spec:
               secretKeyRef:
                 name: ghost-database
                 key: dbname
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 2368
+          initialDelaySeconds: 30
+          periodSeconds: 10
         resources:
           requests:
             memory: "1Gi"
