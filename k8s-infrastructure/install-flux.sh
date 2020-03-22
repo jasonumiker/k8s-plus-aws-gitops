@@ -6,4 +6,5 @@ fluxctl install \
 --git-email=${GHUSER}@users.noreply.github.com \
 --git-url=git@github.com:${GHUSER}/k8s-plus-aws-gitops \
 --git-path=k8s-app-resources \
+--git-poll-interval=30s \
 --namespace=default | kubectl apply -f -

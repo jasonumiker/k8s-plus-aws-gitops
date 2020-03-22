@@ -10,15 +10,15 @@ phases:
     commands:
       - echo Setting up required prerequisites
       - pip install --upgrade awscli
-      - curl --silent --location -o /usr/local/bin/kubectl "https://amazon-eks.s3-us-west-2.amazonaws.com/1.14.6/2019-08-22/bin/linux/amd64/kubectl"
+      - curl --silent --location -o /usr/local/bin/kubectl "https://amazon-eks.s3-us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/linux/amd64/kubectl"
       - chmod +x /usr/local/bin/kubectl
-      - curl --silent --location -o /usr/local/bin/aws-iam-authenticator "https://amazon-eks.s3-us-west-2.amazonaws.com/1.14.6/2019-08-22/bin/linux/amd64/aws-iam-authenticator"
+      - curl --silent --location -o /usr/local/bin/aws-iam-authenticator "https://amazon-eks.s3-us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/linux/amd64/aws-iam-authenticator"
       - chmod +x /usr/local/bin/aws-iam-authenticator
       - curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
       - mv -v /tmp/eksctl /usr/local/bin
       - chmod +x /usr/local/bin/eksctl
       - curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-      - curl --location -o /usr/local/bin/fluxctl "https://github.com/fluxcd/flux/releases/download/1.16.0/fluxctl_linux_amd64"
+      - curl --silent --location -o /usr/local/bin/fluxctl "https://github.com/fluxcd/flux/releases/download/1.18.0/fluxctl_linux_amd64"
       - chmod +x /usr/local/bin/fluxctl
   build:
     commands:

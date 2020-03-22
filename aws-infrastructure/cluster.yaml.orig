@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name: cluster
   region: AWS_DEFAULT_REGION
-  version: "1.14"
+  version: "1.15"
   
 iam:
   withOIDC: true
