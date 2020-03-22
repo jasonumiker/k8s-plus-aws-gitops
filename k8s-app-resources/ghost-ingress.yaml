@@ -7,7 +7,7 @@ metadata:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-1:505070718513:certficate/c564fed3-d2d5-42ed-a0e7-0d593665483d
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-1:505070718513:certificate/c564fed3-d2d5-42ed-a0e7-0d593665483d
     alb.ingress.kubernetes.io/success-codes: 200,301
     external-dns.alpha.kubernetes.io/hostname: ghost.jasonumiker.com  
   labels:
