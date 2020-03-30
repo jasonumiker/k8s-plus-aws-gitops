@@ -27,7 +27,7 @@ class GhostDBStack(core.Stack):
 
         rds.DatabaseInstance(
             self, "RDS",
-            deletion_protection=False,
+            deletion_protection=True,
             removal_policy=core.RemovalPolicy.DESTROY,
             multi_az=False,
             allocated_storage=20,
