@@ -22,7 +22,7 @@ phases:
       - chmod +x /usr/local/bin/fluxctl
   build:
     commands:
-      - echo Deploying ResourcesPipelineStack (to create the RDS database)
+      - echo "Deploying ResourcesPipelineStack (to create the RDS database)"
       - cd aws-infrastructure
       - aws cloudformation create-stack --stack-name ResourcesPipelineStack --template-body file://ResourcesPipelineStack.template.json --capabilities CAPABILITY_IAM
       - echo Assigning IAM Instance Profile to Cloud9 EC2 Instance on `date`
