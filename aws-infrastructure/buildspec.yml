@@ -22,11 +22,13 @@ phases:
       - chmod +x /usr/local/bin/fluxctl
   build:
     commands:
+      - echo Deploying ResourcesPipelineStack (to create the RDS database)
+      - cd aws-infrastructure
+      - aws cloudformation create-stack --stack-name ResourcesPipelineStack --template-body file://ResourcesPipelineStack.template.json --capabilities CAPABILITY_IAM
       - echo Assigning IAM Instance Profile to Cloud9 EC2 Instance on `date`
       - export CLOUD9ID=$(aws ec2 describe-instances --filter "Name=tag:Name,Values=aws-cloud9*" --query Reservations[0].Instances[0].InstanceId --output text)
       - aws ec2 associate-iam-instance-profile --instance-id $CLOUD9ID --iam-instance-profile Name=$INSTANCEPROFILEID
       - echo EKS Provisioning started on `date`
-      - cd aws-infrastructure
       - cp cluster.yaml.orig cluster.yaml
       - sed -i "s/PrivateSubnet1ID/$PrivateSubnet1ID/g" cluster.yaml
       - sed -i "s/PrivateSubnet2ID/$PrivateSubnet2ID/g" cluster.yaml
@@ -40,8 +42,8 @@ phases:
       - kubectl apply -f ghost-namespace.yaml
       - kubectl apply -f externaldns.yaml
       - ./install-flux.sh
-      - ./update-ghost-external-secret.sh
       - ./install-external-secrets.sh
+      - ./update-ghost-external-secret.sh
       - kubectl apply -f ghost-externalsecret.yaml
   post_build:
     commands:
