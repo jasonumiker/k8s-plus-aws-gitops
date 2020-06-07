@@ -22,7 +22,8 @@ iam:
     attachPolicy:
       Version: '2012-10-17'
       Statement:
-      - Action:
+      - Effect: Allow
+        Action:
         - acm:DescribeCertificate
         - acm:ListCertificates
         - acm:GetCertificate
@@ -35,7 +36,7 @@ iam:
         - ec2:DescribeAddresses
         - ec2:DescribeInstances
         - ec2:DescribeInstanceStatus
-        - ec2:DescribeInternetGateways
+        - ec2:DescribeInternetGateaways
         - ec2:DescribeNetworkInterfaces
         - ec2:DescribeSecurityGroups
         - ec2:DescribeSubnets
@@ -80,6 +81,7 @@ iam:
         - iam:CreateServiceLinkedRole
         - iam:GetServerCertificate
         - iam:ListServerCertificates
+        - cognito-idp:DescribeUserPoolClient
         - waf-regional:GetWebACLForResource
         - waf-regional:GetWebACL
         - waf-regional:AssociateWebACL
@@ -87,8 +89,17 @@ iam:
         - tag:GetResources
         - tag:TagResources
         - waf:GetWebACL
+        - wafv2:GetWebACL
+        - wafv2:GetWebACLForResource
+        - wafv2:AssociateWebACL
+        - wafv2:DisassociateWebACL
+        - shield:DescribeProtection
+        - shield:GetSubscriptionState
+        - shield:DeleteProtection
+        - shield:CreateProtection
+        - shield:DescribeSubscription
+        - shield:ListProtections
         Resource: "*"
-        Effect: Allow
   - metadata:
       name: external-dns
       namespace: default
