@@ -31,9 +31,7 @@ class GhostDBStack(core.Stack):
             removal_policy=core.RemovalPolicy.DESTROY,
             multi_az=False,
             allocated_storage=20,
-            engine=rds.DatabaseInstanceEngine.MYSQL(
-                version=rds.MysqlEngineVersion.VER_8_0_19
-            ),
+            engine=rds.DatabaseInstanceEngine.MYSQL,
             master_username="root",
             database_name="ghost",
             vpc=vpc,
