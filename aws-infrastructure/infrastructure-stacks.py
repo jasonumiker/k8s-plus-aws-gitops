@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_codepipeline_actions as codepipeline_actions,
     aws_ec2 as ec2,
     aws_cloud9 as cloud9,
+    aws_eks as eks,
     core
 )
 
@@ -17,13 +18,6 @@ class EnvironmentStack(core.Stack):
             self, "VPC",
             cidr="10.0.0.0/16"
         )
-        
-        self.node.apply_aspect(core.Tag("kubernetes.io/cluster/cluster", "shared"))
-
-        eks_vpc.private_subnets[0].node.apply_aspect(core.Tag("kubernetes.io/role/internal-elb", "1"))
-        eks_vpc.private_subnets[1].node.apply_aspect(core.Tag("kubernetes.io/role/internal-elb", "1"))
-        eks_vpc.public_subnets[0].node.apply_aspect(core.Tag("kubernetes.io/role/elb", "1"))
-        eks_vpc.public_subnets[1].node.apply_aspect(core.Tag("kubernetes.io/role/elb", "1"))
 
         # Create IAM Role For CodeBuild and Cloud9
         codebuild_role = iam.Role(
@@ -37,78 +31,66 @@ class EnvironmentStack(core.Stack):
             ]
         )
 
+        # Create EC2 Instance Profile for that Role
         instance_profile = iam.CfnInstanceProfile(
             self, "InstanceProfile",
             roles=[codebuild_role.role_name]            
         )
 
-        # Create CodeBuild PipelineProject
-        build_project = codebuild.PipelineProject(
-            self, "BuildProject",
-            role=codebuild_role,
-            build_spec=codebuild.BuildSpec.from_source_filename("aws-infrastructure/buildspec.yml")
+        # Create an EKS Cluster
+        eks_cluster = eks.Cluster(
+            self, "cluster",
+            cluster_name="cluster",
+            vpc=eks_vpc,
+            masters_role=codebuild_role,
+            default_capacity_type=eks.DefaultCapacityType.NODEGROUP,
+            default_capacity_instance=ec2.InstanceType("m5.large"),
+            default_capacity=2,
+            version=eks.KubernetesVersion.V1_17
         )
 
-        # Create CodePipeline
-        pipeline = codepipeline.Pipeline(
-            self, "Pipeline",
-        )
-
-        # Create Artifact
-        artifact = codepipeline.Artifact()
-
-        # Add Source Stage
-        pipeline.add_stage(
-            stage_name="Source",
-            actions=[
-                codepipeline_actions.GitHubSourceAction(
-                    action_name="SourceCodeRepo",
-                    owner="jasonumiker",
-                    repo="k8s-plus-aws-gitops",
-                    output=artifact,
-                    oauth_token=core.SecretValue.secrets_manager("github-token"),
-                    trigger=codepipeline_actions.GitHubTrigger.NONE
-                )
-            ]
-        )
-
-        # Add CodeBuild Stage
-        pipeline.add_stage(
-            stage_name="Deploy",
-            actions=[
-                codepipeline_actions.CodeBuildAction(
-                    action_name="CodeBuildProject",
-                    project=build_project,
-                    type=codepipeline_actions.CodeBuildActionType.BUILD,
-                    input=artifact,
-                    environment_variables={
-                        'PublicSubnet1ID': codebuild.BuildEnvironmentVariable(value=eks_vpc.public_subnets[0].subnet_id),
-                        'PublicSubnet2ID': codebuild.BuildEnvironmentVariable(value=eks_vpc.public_subnets[1].subnet_id),
-                        'PrivateSubnet1ID': codebuild.BuildEnvironmentVariable(value=eks_vpc.private_subnets[0].subnet_id),
-                        'PrivateSubnet2ID': codebuild.BuildEnvironmentVariable(value=eks_vpc.private_subnets[1].subnet_id),
-                        'AWS_DEFAULT_REGION': codebuild.BuildEnvironmentVariable(value=self.region),
-                        'INSTANCEPROFILEID': codebuild.BuildEnvironmentVariable(value=instance_profile.ref)
-                    }
-                )
-            ]
-        )
-
+        # Prereq for Cloud 9 to pre-clone our GitHub Repo
         cloud9_repository = cloud9.CfnEnvironmentEC2.RepositoryProperty(
             path_component="k8s-plus-aws-gitops",
             repository_url="https://github.com/jasonumiker/k8s-plus-aws-gitops"
         )
 
+        # Create a Cloud 9 in the same VPC as the EKS Cluster
         cloud9_instance = cloud9.CfnEnvironmentEC2(
-            self, 'Cloud9Instance',
-            instance_type="t2.micro",
+            self, "Cloud9Instance",
+            instance_type="t3.micro",
             automatic_stop_time_minutes=30,
             subnet_id=eks_vpc.public_subnets[0].subnet_id,
             repositories=[cloud9_repository]
         )
 
-        pipeline.node.add_dependency(eks_vpc)
-        pipeline.node.add_dependency(cloud9_instance)
-        cloud9_instance.node.add_dependency(eks_vpc)
+        # Deploy Flux for k8s-infrastructure
+        eks_cluster.add_chart(
+            "flux-system",
+            chart="flux",
+            repository="https://charts.fluxcd.io",
+            namespace="flux",
+            values={
+                "git.url": "git@github.com:jasonumiker/k8s-plus-aws-gitops",
+                "git.path": "k8s-infrastructure",
+                "git.readonly": "true",
+                "git.branch": "cdk-for-cluster",
+                "namespace": "flux"
+            }
+        )
+
+        # Deploy Flux Helm Chart Operator for k8s-infrastructure
+        eks_cluster.add_chart(
+            "flux-system-helm",
+            chart="helm-operator",
+            repository="https://charts.fluxcd.io",
+            namespace="flux",
+            values={
+                "namespace": "flux",
+                "helm.versions": "v3",
+                "git.ssh.secretName": "flux-git-deploy"
+            }
+        )
 
 class AWSAppResourcesPipeline(core.Stack):
 
