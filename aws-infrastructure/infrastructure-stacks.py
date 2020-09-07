@@ -43,6 +43,7 @@ class EnvironmentStack(core.Stack):
             cluster_name="cluster",
             vpc=eks_vpc,
             masters_role=codebuild_role,
+            endpoint_access=eks.EndpointAccess.PRIVATE,
             default_capacity_type=eks.DefaultCapacityType.NODEGROUP,
             default_capacity_instance=ec2.InstanceType("m5.large"),
             default_capacity=2,
@@ -64,31 +65,264 @@ class EnvironmentStack(core.Stack):
             repositories=[cloud9_repository]
         )
 
-        # Deploy Flux for k8s-infrastructure
+        # Deploy ALB Ingress Controller
+
+        # Create the k8s Service account and corresponding IAM Role mapped via IRSA
+        alb_service_account = eks_cluster.add_service_account(
+            "alb-ingress-controller",
+            name="alb-ingress-controller",
+            namespace="kube-system"
+        )
+
+        # Create the PolicyStatements to attach to the role
+        # I couldn't find a way to get this to work with a PolicyDocument and there are 10 of these
+        alb_policy_statement_json_1 = {
+            "Effect": "Allow",
+            "Action": [
+                "acm:DescribeCertificate",
+                "acm:ListCertificates",
+                "acm:GetCertificate"
+            ],
+            "Resource": "*"
+        }
+        alb_policy_statement_json_2 = {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:CreateSecurityGroup",
+                "ec2:CreateTags",
+                "ec2:DeleteTags",
+                "ec2:DeleteSecurityGroup",
+                "ec2:DescribeAccountAttributes",
+                "ec2:DescribeAddresses",
+                "ec2:DescribeInstances",
+                "ec2:DescribeInstanceStatus",
+                "ec2:DescribeInternetGateways",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeTags",
+                "ec2:DescribeVpcs",
+                "ec2:ModifyInstanceAttribute",
+                "ec2:ModifyNetworkInterfaceAttribute",
+                "ec2:RevokeSecurityGroupIngress"
+            ],
+            "Resource": "*"
+        }
+        alb_policy_statement_json_3 = {
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:AddListenerCertificates",
+                "elasticloadbalancing:AddTags",
+                "elasticloadbalancing:CreateListener",
+                "elasticloadbalancing:CreateLoadBalancer",
+                "elasticloadbalancing:CreateRule",
+                "elasticloadbalancing:CreateTargetGroup",
+                "elasticloadbalancing:DeleteListener",
+                "elasticloadbalancing:DeleteLoadBalancer",
+                "elasticloadbalancing:DeleteRule",
+                "elasticloadbalancing:DeleteTargetGroup",
+                "elasticloadbalancing:DeregisterTargets",
+                "elasticloadbalancing:DescribeListenerCertificates",
+                "elasticloadbalancing:DescribeListeners",
+                "elasticloadbalancing:DescribeLoadBalancers",
+                "elasticloadbalancing:DescribeLoadBalancerAttributes",
+                "elasticloadbalancing:DescribeRules",
+                "elasticloadbalancing:DescribeSSLPolicies",
+                "elasticloadbalancing:DescribeTags",
+                "elasticloadbalancing:DescribeTargetGroups",
+                "elasticloadbalancing:DescribeTargetGroupAttributes",
+                "elasticloadbalancing:DescribeTargetHealth",
+                "elasticloadbalancing:ModifyListener",
+                "elasticloadbalancing:ModifyLoadBalancerAttributes",
+                "elasticloadbalancing:ModifyRule",
+                "elasticloadbalancing:ModifyTargetGroup",
+                "elasticloadbalancing:ModifyTargetGroupAttributes",
+                "elasticloadbalancing:RegisterTargets",
+                "elasticloadbalancing:RemoveListenerCertificates",
+                "elasticloadbalancing:RemoveTags",
+                "elasticloadbalancing:SetIpAddressType",
+                "elasticloadbalancing:SetSecurityGroups",
+                "elasticloadbalancing:SetSubnets",
+                "elasticloadbalancing:SetWebAcl"
+            ],
+            "Resource": "*"
+        }
+        alb_policy_statement_json_4 = {
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateServiceLinkedRole",
+                "iam:GetServerCertificate",
+                "iam:ListServerCertificates"
+            ],
+            "Resource": "*"
+        }
+        alb_policy_statement_json_5 = {
+            "Effect": "Allow",
+            "Action": [
+                "cognito-idp:DescribeUserPoolClient"
+            ],
+            "Resource": "*"
+        }
+        alb_policy_statement_json_6 = {
+            "Effect": "Allow",
+            "Action": [
+                "waf-regional:GetWebACLForResource",
+                "waf-regional:GetWebACL",
+                "waf-regional:AssociateWebACL",
+                "waf-regional:DisassociateWebACL"
+            ],
+            "Resource": "*"
+        }
+        alb_policy_statement_json_7 = {
+            "Effect": "Allow",
+            "Action": [
+                "tag:GetResources",
+                "tag:TagResources"
+            ],
+            "Resource": "*"
+        }
+        alb_policy_statement_json_8 = {
+            "Effect": "Allow",
+            "Action": [
+                "waf:GetWebACL"
+            ],
+            "Resource": "*"
+        }
+        alb_policy_statement_json_9 = {
+            "Effect": "Allow",
+            "Action": [
+                "wafv2:GetWebACL",
+                "wafv2:GetWebACLForResource",
+                "wafv2:AssociateWebACL",
+                "wafv2:DisassociateWebACL"
+            ],
+            "Resource": "*"
+        }
+        alb_policy_statement_json_10 = {
+            "Effect": "Allow",
+            "Action": [
+                "shield:DescribeProtection",
+                "shield:GetSubscriptionState",
+                "shield:DeleteProtection",
+                "shield:CreateProtection",
+                "shield:DescribeSubscription",
+                "shield:ListProtections"
+            ],
+            "Resource": "*"
+        }
+        
+        # Attach the necessary permissions
+        alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_1))
+        alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_2))
+        alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_3))
+        alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_4))
+        alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_5))
+        alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_6))
+        alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_7))
+        alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_8))
+        alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_9))
+        alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_10))
+
+        # Deploy the ALB Ingress Controller from the Helm chart
         eks_cluster.add_chart(
-            "flux-system",
+            "aws-alb-ingress-controller",
+            chart="aws-alb-ingress-controller",
+            repository="http://storage.googleapis.com/kubernetes-charts-incubator",
+            namespace="kube-system",
+            values={
+                "autoDiscoverAwsRegion": "true",
+                "autoDiscoverAwsVpcID": "true",
+                "clusterName": "cluster",
+                "rbac.create": "true",
+                "rbac.serviceAccountName": "alb-ingress-controller"
+            }
+        )
+
+        # Deploy External DNS Controller
+        # Create the k8s Service account and corresponding IAM Role mapped via IRSA
+        externaldns_service_account = eks_cluster.add_service_account(
+            "external-dns",
+            name="external-dns",
+            namespace="kube-system"
+        )
+
+        # Create the PolicyStatements to attach to the role
+        # I couldn't find a way to get this to work with a PolicyDocument and there are 10 of these
+        externaldns_policy_statement_json_1 = {
+        "Effect": "Allow",
+            "Action": [
+                "route53:ChangeResourceRecordSets"
+            ],
+            "Resource": [
+                "arn:aws:route53:::hostedzone/*"
+            ]
+        }
+        externaldns_policy_statement_json_2 = {
+            "Effect": "Allow",
+            "Action": [
+                "route53:ListHostedZones",
+                "route53:ListResourceRecordSets"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+
+        # Add the policies to the service account
+        externaldns_service_account.add_to_policy(iam.PolicyStatement.from_json(externaldns_policy_statement_json_1))
+        externaldns_service_account.add_to_policy(iam.PolicyStatement.from_json(externaldns_policy_statement_json_2))
+
+        # Deploy the Helm Chart
+        eks_cluster.add_chart(
+            "external-dns",
+            chart="external-dns",
+            repository="https://charts.bitnami.com/bitnami",
+            namespace="kube-system",
+            values={
+                "serviceAccount.create": "false",
+                "serviceAccount.name": "external-dns"
+            }
+        )        
+
+        # Deploy External Secrets Controller
+        # Create the k8s Service account and corresponding IAM Role mapped via IRSA
+        externalsecrets_service_account = eks_cluster.add_service_account(
+            "kubernetes-external-secrets",
+            name="kubernetes-external-secrets",
+            namespace="kube-system"
+        )
+
+        externalsecrets_service_account.role.add_managed_policy(
+            iam.ManagedPolicy.from_managed_policy_arn(
+                self, "SecretsManagerReadWrite",
+                managed_policy_arn="arn:aws:iam::aws:policy/SecretsManagerReadWrite")
+        )
+
+        # Deploy the Helm Chart
+        eks_cluster.add_chart(
+            "kubernetes-external-secrets",
+            chart="kubernetes-external-secrets",
+            repository="https://godaddy.github.io/kubernetes-external-secrets/",
+            namespace="kube-system",
+            values={
+                "serviceAccount.create": "false",
+                "serviceAccount.name": "kubernetes-external-secrets",
+            }
+        )      
+
+        # Deploy Flux for k8s-app-resources
+        eks_cluster.add_chart(
+            "flux",
             chart="flux",
             repository="https://charts.fluxcd.io",
             namespace="flux",
             values={
                 "git.url": "git@github.com:jasonumiker/k8s-plus-aws-gitops",
-                "git.path": "k8s-infrastructure",
+                "git.path": "k8s-app-resources",
                 "git.readonly": "true",
                 "git.branch": "cdk-for-cluster",
                 "namespace": "flux"
-            }
-        )
-
-        # Deploy Flux Helm Chart Operator for k8s-infrastructure
-        eks_cluster.add_chart(
-            "flux-system-helm",
-            chart="helm-operator",
-            repository="https://charts.fluxcd.io",
-            namespace="flux",
-            values={
-                "namespace": "flux",
-                "helm.versions": "v3",
-                "git.ssh.secretName": "flux-git-deploy"
             }
         )
 
