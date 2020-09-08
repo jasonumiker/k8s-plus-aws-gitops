@@ -9,7 +9,7 @@ from aws_cdk import (
     core
 )
 
-class EnvironmentStack(core.Stack):
+class AWSInfrastructureStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -43,7 +43,6 @@ class EnvironmentStack(core.Stack):
             cluster_name="cluster",
             vpc=eks_vpc,
             masters_role=codebuild_role,
-            endpoint_access=eks.EndpointAccess.PRIVATE,
             default_capacity_type=eks.DefaultCapacityType.NODEGROUP,
             default_capacity_instance=ec2.InstanceType("m5.large"),
             default_capacity=2,
@@ -60,7 +59,7 @@ class EnvironmentStack(core.Stack):
         cloud9_instance = cloud9.CfnEnvironmentEC2(
             self, "Cloud9Instance",
             instance_type="t3.micro",
-            automatic_stop_time_minutes=30,
+            automatic_stop_time_minutes=60,
             subnet_id=eks_vpc.public_subnets[0].subnet_id,
             repositories=[cloud9_repository]
         )
@@ -312,19 +311,19 @@ class EnvironmentStack(core.Stack):
         )      
 
         # Deploy Flux for k8s-app-resources
-        eks_cluster.add_chart(
-            "flux",
-            chart="flux",
-            repository="https://charts.fluxcd.io",
-            namespace="flux",
-            values={
-                "git.url": "git@github.com:jasonumiker/k8s-plus-aws-gitops",
-                "git.path": "k8s-app-resources",
-                "git.readonly": "true",
-                "git.branch": "cdk-for-cluster",
-                "namespace": "flux"
-            }
-        )
+#        eks_cluster.add_chart(
+#           "flux",
+#            chart="flux",
+#            repository="https://charts.fluxcd.io",
+#            namespace="flux",
+#            values={
+#                "git.url": "git@github.com:jasonumiker/k8s-plus-aws-gitops",
+#                "git.path": "k8s-app-resources",
+#                "git.readonly": "true",
+#                "git.branch": "cdk-for-cluster",
+#                "namespace": "flux"
+#            }
+#        )
 
 class AWSAppResourcesPipeline(core.Stack):
 
@@ -383,6 +382,6 @@ class AWSAppResourcesPipeline(core.Stack):
         )
 
 app = core.App()
-environment_stack = EnvironmentStack(app, "EnvironmentStack")
+aws_infrastructure_stack = AWSInfrastructureStack(app, "AWSInfrastructureStack")
 resources_pipeline_stack = AWSAppResourcesPipeline(app, "ResourcesPipelineStack")
 app.synth()
