@@ -280,7 +280,8 @@ class AWSInfrastructureStack(core.Stack):
             namespace="kube-system",
             values={
                 "serviceAccount.create": "false",
-                "serviceAccount.name": "external-dns"
+                "serviceAccount.name": "external-dns",
+                "podSecurityContext.fsGroup": "65534"
             }
         )        
 
@@ -307,6 +308,7 @@ class AWSInfrastructureStack(core.Stack):
             values={
                 "serviceAccount.create": "false",
                 "serviceAccount.name": "kubernetes-external-secrets",
+                "securityContext.fsGroup": "65534"
             }
         )      
 
