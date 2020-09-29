@@ -401,6 +401,7 @@ class AWSInfrastructureStack(core.Stack):
         code_server_instance.user_data.add_commands("yum install -y git")        
         code_server_instance.user_data.add_commands("rm /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python && ln -s /usr/bin/pip3 /usr/bin/pip")
         code_server_instance.user_data.add_commands("npm install -g aws-cdk")
+        code_server_instance.user_data.add_commands("echo 'export KUBECONFIG=~/.kube/config' >>  ~/.bash_profile")
 
         # Add ALB
         lb = elbv2.ApplicationLoadBalancer(
