@@ -4,5 +4,5 @@ aws-cdk.aws_iam
 aws-cdk.aws_codepipeline
 aws-cdk.aws_codepipeline_actions
 aws-cdk.aws_ec2
-aws-cdk.aws_cloud9
 aws-cdk.aws_eks
+aws_elasticloadbalancingv2
