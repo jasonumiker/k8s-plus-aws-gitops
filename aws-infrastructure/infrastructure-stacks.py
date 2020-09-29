@@ -340,6 +340,23 @@ class AWSInfrastructureStack(core.Stack):
                 }
             }
         )
+
+        # Deploy Flux
+        # Deploy the Helm Chart
+        eks_cluster.add_chart(
+            "flux",
+            chart="flux",
+            repository="https://charts.fluxcd.io",
+            namespace="kube-system",
+            values={
+                "git": {
+                    "url": "git@github.com:jasonumiker/k8s-plus-aws-gitops",
+                    "path": "k8s-app-resources",
+                    "branch": "cdk-for-cluster"
+                }
+            }
+        )        
+
         # Create code-server bastion
         # Get Latest Amazon Linux AMI
         amzn_linux = ec2.MachineImage.latest_amazon_linux(
