@@ -229,7 +229,7 @@ class AWSInfrastructureStack(core.Stack):
             namespace="kube-system",
             values={
                 "clusterName": eks_cluster.cluster_name,
-                "awsRegion": os.environ["CDK_DEFAULT_REGION"],
+                "awsRegion": self.region,
                 "awsVpcID": eks_vpc.vpc_id,
                 "rbac": {
                     "create": True,
@@ -284,7 +284,7 @@ class AWSInfrastructureStack(core.Stack):
             values={
                 "provider": "aws",
                 "aws": {
-                    "region": os.environ["CDK_DEFAULT_REGION"]
+                    "region": self.region
                 },
                 "serviceAccount": {
                     "create": False,
@@ -329,7 +329,7 @@ class AWSInfrastructureStack(core.Stack):
             namespace="kube-system",
             values={
                 "env": {
-                    "AWS_REGION": os.environ["CDK_DEFAULT_REGION"]
+                    "AWS_REGION": self.region
                 },
                 "serviceAccount": {
                     "name": "kubernetes-external-secrets",
