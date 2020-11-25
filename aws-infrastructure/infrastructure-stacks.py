@@ -66,8 +66,8 @@ class AWSInfrastructureStack(core.Stack):
         # Deploy ALB Ingress Controller
         # Create the k8s Service account and corresponding IAM Role mapped via IRSA
         alb_service_account = eks_cluster.add_service_account(
-            "alb-ingress-controller",
-            name="alb-ingress-controller",
+            "aws-load-balancer-controller",
+            name="aws-load-balancer-controller",
             namespace="kube-system"
         )
 
@@ -222,21 +222,18 @@ class AWSInfrastructureStack(core.Stack):
         alb_service_account.add_to_policy(iam.PolicyStatement.from_json(alb_policy_statement_json_10))
 
         # Deploy the ALB Ingress Controller from the Helm chart
-        eks_cluster.add_chart(
-            "aws-alb-ingress-controller",
-            chart="aws-alb-ingress-controller",
-            repository="http://storage.googleapis.com/kubernetes-charts-incubator",
+        eks_cluster.add_helm_chart(
+            "aws-load-balancer-controller",
+            chart="aws-load-balancer-controller",
+            repository="https://aws.github.io/eks-charts",
             namespace="kube-system",
             values={
                 "clusterName": eks_cluster.cluster_name,
-                "awsRegion": os.environ["CDK_DEFAULT_REGION"],
-                "awsVpcID": eks_vpc.vpc_id,
-                "rbac": {
-                    "create": True,
-                    "serviceAccount": {
-                        "create": False,
-                        "name": "alb-ingress-controller"
-                    }
+                "region": os.environ["CDK_DEFAULT_REGION"],
+                "vpcId": eks_vpc.vpc_id,
+                "serviceAccount": {
+                    "create": False,
+                    "name": "aws-load-balancer-controller"
                 }
             }
         )
@@ -276,7 +273,7 @@ class AWSInfrastructureStack(core.Stack):
         externaldns_service_account.add_to_policy(iam.PolicyStatement.from_json(externaldns_policy_statement_json_2))
 
         # Deploy the Helm Chart
-        eks_cluster.add_chart(
+        eks_cluster.add_helm_chart(
             "external-dns",
             chart="external-dns",
             repository="https://charts.bitnami.com/bitnami",
@@ -322,10 +319,10 @@ class AWSInfrastructureStack(core.Stack):
         externalsecrets_service_account.add_to_policy(iam.PolicyStatement.from_json(externalsecrets_policy_statement_json_1))
 
         # Deploy the Helm Chart
-        eks_cluster.add_chart(
+        eks_cluster.add_helm_chart(
             "external-secrets",
-            chart="kubernetes-external-secrets",
-            repository="https://godaddy.github.io/kubernetes-external-secrets/",
+            chart="kubernetes-external-secrets",            
+            repository="https://external-secrets.github.io/kubernetes-external-secrets/",
             namespace="kube-system",
             values={
                 "env": {
@@ -343,7 +340,7 @@ class AWSInfrastructureStack(core.Stack):
 
         # Deploy Flux
         # Deploy the Helm Chart
-        eks_cluster.add_chart(
+        eks_cluster.add_helm_chart(
             "flux",
             chart="flux",
             repository="https://charts.fluxcd.io",
