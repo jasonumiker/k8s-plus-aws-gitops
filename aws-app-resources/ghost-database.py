@@ -32,9 +32,9 @@ class GhostDBStack(core.Stack):
             multi_az=False,
             allocated_storage=20,
             engine=rds.DatabaseInstanceEngine.mysql(
-                version=rds.MysqlEngineVersion.VER_8_0_17
+                version=rds.MysqlEngineVersion.VER_8_0_21
             ),
-            master_username="root",
+            credentials=rds.Credentials.from_username("root"),
             database_name="ghost",
             vpc=vpc,
             instance_type=ec2.InstanceType.of(

@@ -60,7 +60,7 @@ class AWSInfrastructureStack(core.Stack):
             default_capacity=2,
             security_group=eks_security_group,
             endpoint_access=eks.EndpointAccess.PUBLIC_AND_PRIVATE,
-            version=eks.KubernetesVersion.V1_17
+            version=eks.KubernetesVersion.V1_18
         )
 
         # Deploy ALB Ingress Controller
@@ -349,7 +349,7 @@ class AWSInfrastructureStack(core.Stack):
                 "git": {
                     "url": "git@github.com:jasonumiker/k8s-plus-aws-gitops",
                     "path": "k8s-app-resources",
-                    "branch": "cdk-for-cluster"
+                    "branch": "master"
                 }
             }
         )        
