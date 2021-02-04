@@ -9,6 +9,7 @@
 1. Run `git add *`
 1. Run `git commit` and put in an appropriate commit message and save
 1. Run `git push` to send the changes upstream
+1. (Optional) force flux to do an immediate sync (by default flux checks every 5 minutes) with our newly merged changes by running `fluxctl sync --k8s-fwd-ns kube-system`
 
 This will trigger flux to commit the changed ghost-externalsecret.yaml and ghost-ingress.yaml and then the Ghost service should come up.
 
