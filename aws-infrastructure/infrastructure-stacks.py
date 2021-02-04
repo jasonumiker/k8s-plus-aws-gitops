@@ -352,84 +352,7 @@ class AWSInfrastructureStack(core.Stack):
                     "branch": "master"
                 }
             }
-        )        
-
-        # Create code-server bastion
-        # Get Latest Amazon Linux AMI
-        amzn_linux = ec2.MachineImage.latest_amazon_linux(
-            generation=ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
-            edition=ec2.AmazonLinuxEdition.STANDARD,
-            virtualization=ec2.AmazonLinuxVirt.HVM,
-            storage=ec2.AmazonLinuxStorage.GENERAL_PURPOSE
-            )
-
-        # Create SecurityGroup for code-server
-        security_group = ec2.SecurityGroup(
-            self, "SecurityGroup",
-            vpc=eks_vpc,
-            allow_all_outbound=True
         )
-        
-        security_group.add_ingress_rule(
-            ec2.Peer.any_ipv4(),
-            ec2.Port.tcp(8080)
-        )
-
-        # Create our EC2 instance running CodeServer
-        code_server_instance = ec2.Instance(
-            self, "CodeServerInstance",
-            instance_type=ec2.InstanceType("t3.large"),
-            machine_image=amzn_linux,
-            role=bastion_role,
-            vpc=eks_vpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),
-            security_group=security_group,
-            block_devices=[ec2.BlockDevice(device_name="/dev/xvda", volume=ec2.BlockDeviceVolume.ebs(20))]
-        )
-
-        # Add UserData
-        code_server_instance.user_data.add_commands("mkdir -p ~/.local/lib ~/.local/bin ~/.config/code-server")
-        code_server_instance.user_data.add_commands("curl -fL https://github.com/cdr/code-server/releases/download/v3.5.0/code-server-3.5.0-linux-amd64.tar.gz | tar -C ~/.local/lib -xz")
-        code_server_instance.user_data.add_commands("mv ~/.local/lib/code-server-3.5.0-linux-amd64 ~/.local/lib/code-server-3.5.0")
-        code_server_instance.user_data.add_commands("ln -s ~/.local/lib/code-server-3.5.0/bin/code-server ~/.local/bin/code-server")
-        code_server_instance.user_data.add_commands("echo \"bind-addr: 0.0.0.0:8080\" > ~/.config/code-server/config.yaml")
-        code_server_instance.user_data.add_commands("echo \"auth: password\" >> ~/.config/code-server/config.yaml")
-        code_server_instance.user_data.add_commands("echo \"password: $(curl -s http://169.254.169.254/latest/meta-data/instance-id)\" >> ~/.config/code-server/config.yaml")
-        code_server_instance.user_data.add_commands("echo \"cert: false\" >> ~/.config/code-server/config.yaml")
-        code_server_instance.user_data.add_commands("~/.local/bin/code-server &")
-        code_server_instance.user_data.add_commands("yum -y install jq gettext bash-completion moreutils")
-        code_server_instance.user_data.add_commands("sudo pip install --upgrade awscli && hash -r")
-        code_server_instance.user_data.add_commands("echo 'export ALB_INGRESS_VERSION=\"v1.1.8\"' >>  ~/.bash_profile")
-        code_server_instance.user_data.add_commands("curl --silent --location -o /usr/local/bin/kubectl \"https://amazon-eks.s3.us-west-2.amazonaws.com/1.17.9/2020-08-04/bin/linux/amd64/kubectl\"")
-        code_server_instance.user_data.add_commands("chmod +x /usr/local/bin/kubectl")
-        code_server_instance.user_data.add_commands("curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash")
-        code_server_instance.user_data.add_commands("export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)")
-        code_server_instance.user_data.add_commands("export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')")
-        code_server_instance.user_data.add_commands("echo \"export ACCOUNT_ID=${ACCOUNT_ID}\" | tee -a ~/.bash_profile")
-        code_server_instance.user_data.add_commands("echo \"export AWS_REGION=${AWS_REGION}\" | tee -a ~/.bash_profile")
-        code_server_instance.user_data.add_commands("aws configure set default.region ${AWS_REGION}")
-        code_server_instance.user_data.add_commands("curl --silent --location https://rpm.nodesource.com/setup_12.x | bash -")
-        code_server_instance.user_data.add_commands("yum -y install nodejs")
-        code_server_instance.user_data.add_commands("amazon-linux-extras enable python3")
-        code_server_instance.user_data.add_commands("yum install -y python3 --disablerepo amzn2-core")
-        code_server_instance.user_data.add_commands("yum install -y git")        
-        code_server_instance.user_data.add_commands("rm /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python && ln -s /usr/bin/pip3 /usr/bin/pip")
-        code_server_instance.user_data.add_commands("npm install -g aws-cdk")
-        code_server_instance.user_data.add_commands("echo 'export KUBECONFIG=~/.kube/config' >>  ~/.bash_profile")
-
-        # Add ALB
-        lb = elbv2.ApplicationLoadBalancer(
-            self, "LB",
-            vpc=eks_vpc,
-            internet_facing=True
-        )
-        listener = lb.add_listener("Listener", port=80)
-        listener.connections.allow_default_port_from_any_ipv4("Open to the Internet")
-        listener.connections.allow_to_any_ipv4(port_range=ec2.Port(string_representation="TCP 8080", protocol=ec2.Protocol.TCP, from_port=8080, to_port=8080))
-        listener.add_targets("Target", port=8080, targets=[elbv2.InstanceTarget(
-            instance_id=code_server_instance.instance_id,
-            port=8080
-        )])
 
 class AWSAppResourcesPipeline(core.Stack):
 
@@ -488,7 +411,6 @@ class AWSAppResourcesPipeline(core.Stack):
         )
 
 app = core.App()
-env = core.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"])
-aws_infrastructure_stack = AWSInfrastructureStack(app, "AWSInfrastructureStack", env=env)
-resources_pipeline_stack = AWSAppResourcesPipeline(app, "ResourcesPipelineStack", env=env)
+aws_infrastructure_stack = AWSInfrastructureStack(app, "AWSInfrastructureStack")
+resources_pipeline_stack = AWSAppResourcesPipeline(app, "ResourcesPipelineStack")
 app.synth()

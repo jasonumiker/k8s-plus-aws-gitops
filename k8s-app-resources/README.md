@@ -1,17 +1,15 @@
-Once Flux is deployed things in this folder will be deployed to the cluster and any changes will subsequently be on each merge to master.
+# Deploying Ghost onto the cluster
 
-The necessary password for access to the database will be in the Kubernetes Secret ghost-database. It will be created by the external-secrets operator due to the equivilent ExternalSecret created in k8s-infrastructure instructing it to do so. 
+## Deployment steps
 
-What happened there is:
-1. CDK created a secret in SecretsManager
-1. It created the RDS instance referencing that secret as the one to use
-1. The [external-secrets](https://github.com/godaddy/kubernetes-external-secrets) operator looks for ExternalSecrets that tell it things it should upsert into Kubernetes Secrets - we should have created one for it in ../k8s-infrastructure.
-1. The Deployment can just reference the resulting Kubernetes Secret with it - decoupling things nicely from AWS and the Secrets Manager.
+1. Run `update-ghost-external-secret.sh` to populate ghost-externalsecret.yaml with the details on the secret in SecretsManager that CDK created for the MySQL RDS
+1. Edit `ghost-ingress.yaml` and:
+    1. Put in the ARN of your certificate for either *.[yourdomainname] or ghost.[yourdomainname]
+    1. Update `external-dns.alpha.kubernetes.io/hostname` to your fully qualified domain name (FQDN)
+1. Run `git add *`
+1. Run `git commit` and put in an appropriate commit message and save
+1. Run `git push` to send the changes upstream
 
-We also leverage an Ingress tied to the ALB Ingress Controller (note the AWS-specific annotations for this to work). The advantage of this is that the ALB will route traffic directly to the Pod IPs rather than via a NodePort NAT through the hosts which is much more efficient. It also means that there one fewer service to manage, and pay for the resources consumed by, on your cluster (which you would have if using something like the nginx Ingress Controller).
+This will trigger flux to commit the changed ghost-externalsecret.yaml and ghost-ingress.yaml and then the Ghost service should come up.
 
-NOTE: If you want HTTPS you need to add the ARN of a ACM key in your account to the Ingress object.
-
-And, finally, we use External DNS to update a CNAME to point at the ALB created/managed by the ALB Ingress.
-
-NOTE: You need a Route53 Zone and corresponding public domain name you own that it hosts to do that part.
+Once the service is running you can go to the FQDN/ghost (e.g. ghost.jasonumiker.com/ghost) and then create the initial admin user that can edit the site (before a random person on the Internet does!)
