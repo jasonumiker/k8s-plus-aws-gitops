@@ -455,9 +455,9 @@ class DockerBuildPipeline(core.Stack):
                     action_name="SourceCodeRepo",
                     owner="jasonumiker",
                     repo="k8s-plus-aws-gitops",
+                    branch="dockerbuild",
                     output=ghost_artifact,
                     oauth_token=core.SecretValue.secrets_manager('github-token'),
-                    branch="dockerbuild",
                     trigger=codepipeline_actions.GitHubTrigger.NONE
                 )
             ]
@@ -473,8 +473,8 @@ class DockerBuildPipeline(core.Stack):
                     type=codepipeline_actions.CodeBuildActionType.BUILD,
                     input=ghost_artifact,
                     environment_variables={
-                        'AWS_ACCOUNT_ID': self.account,
-                        'IMAGE_REPO_NAME': ghost_repo.repository_name
+                        'AWS_ACCOUNT_ID': codebuild.BuildEnvironmentVariable(value=self.account),
+                        'IMAGE_REPO_NAME': codebuild.BuildEnvironmentVariable(value=ghost_repo.repository_name)
                     }
                 )
             ]
@@ -483,5 +483,5 @@ class DockerBuildPipeline(core.Stack):
 app = core.App()
 aws_infrastructure_stack = AWSInfrastructureStack(app, "AWSInfrastructureStack")
 resources_pipeline_stack = AWSAppResourcesPipeline(app, "ResourcesPipelineStack")
-docker_build_pipeline_stack = AWSAppResourcesPipeline(app, "DockerBuildPipeline")
+docker_build_pipeline_stack = DockerBuildPipeline(app, "DockerBuildPipeline")
 app.synth()
