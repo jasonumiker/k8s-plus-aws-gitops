@@ -6,6 +6,8 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_eks as eks,
     aws_elasticloadbalancingv2 as elbv2,
+    aws_ecr as ecr,
+    aws_s3 as s3,
     core
 )
 import os
@@ -415,9 +417,15 @@ class DockerBuildPipeline(core.Stack):
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
         
+        # Create ECR Repository
+        ghost_repo = ecr.Repository(
+            self, "GhostRepo",
+            repository_name="ghost"
+        )
+
         # Create IAM Role For CodeBuild
-        codebuild_role = iam.Role(
-            self, "BuildRole",
+        ghost_build_role = iam.Role(
+            self, "GhostBuildRole",
             assumed_by=iam.ServicePrincipal("codebuild.amazonaws.com"),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")
@@ -425,43 +433,49 @@ class DockerBuildPipeline(core.Stack):
         )
 
         # Create CodeBuild PipelineProject
-        build_project = codebuild.PipelineProject(
-            self, "BuildProject",
-            role=codebuild_role,
+        ghost_build_project = codebuild.PipelineProject(
+            self, "GhostBuildProject",
+            role=ghost_build_role,
             build_spec=codebuild.BuildSpec.from_source_filename("dockerbuild/buildspec.yml")
         )
 
         # Create CodePipeline
-        pipeline = codepipeline.Pipeline(
-            self, "Pipeline"
+        ghost_pipeline = codepipeline.Pipeline(
+            self, "GhostPipeline"
         )
 
         # Create Artifact
-        artifact = codepipeline.Artifact()
+        ghost_artifact = codepipeline.Artifact()
 
         # Add Source Stage
-        pipeline.add_stage(
+        ghost_pipeline.add_stage(
             stage_name="Source",
             actions=[
                 codepipeline_actions.GitHubSourceAction(
                     action_name="SourceCodeRepo",
                     owner="jasonumiker",
                     repo="k8s-plus-aws-gitops",
-                    output=artifact,
-                    oauth_token=core.SecretValue.secrets_manager('github-token')
+                    output=ghost_artifact,
+                    oauth_token=core.SecretValue.secrets_manager('github-token'),
+                    branch="dockerbuild",
+                    trigger=codepipeline_actions.GitHubTrigger.NONE
                 )
             ]
         )
 
         # Add CodeBuild Stage
-        pipeline.add_stage(
-            stage_name="Deploy",
+        ghost_pipeline.add_stage(
+            stage_name="ContainerBuild",
             actions=[
                 codepipeline_actions.CodeBuildAction(
                     action_name="CodeBuildProject",
-                    project=build_project,
+                    project=ghost_build_project,
                     type=codepipeline_actions.CodeBuildActionType.BUILD,
-                    input=artifact
+                    input=ghost_artifact,
+                    environment_variables={
+                        'AWS_ACCOUNT_ID': self.account,
+                        'IMAGE_REPO_NAME': ghost_repo.repository_name
+                    }
                 )
             ]
         )

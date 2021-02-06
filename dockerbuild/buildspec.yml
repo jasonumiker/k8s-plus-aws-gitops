@@ -2,17 +2,12 @@
 # By Jason Umiker (jason.umiker@gmail.com)
 
 # This requires the following environment variables be set on the Project:
-# AWS_DEFAULT_REGION (Supplied by CodeBuild)
 # AWS_ACCOUNT_ID
 # IMAGE_REPO_NAME
-# IMAGE_TAG
 
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      docker: 18
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...

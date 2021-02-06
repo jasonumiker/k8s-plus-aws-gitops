@@ -6,3 +6,5 @@ aws-cdk.aws_codepipeline_actions
 aws-cdk.aws_ec2
 aws-cdk.aws_eks
 aws-cdk.aws_elasticloadbalancingv2
+aws-cdk.aws_ecr
+aws-cdk.aws_s3
