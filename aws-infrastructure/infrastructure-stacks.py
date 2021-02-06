@@ -458,7 +458,6 @@ class DockerBuildPipeline(core.Stack):
                     action_name="SourceCodeRepo",
                     owner="jasonumiker",
                     repo="k8s-plus-aws-gitops",
-                    branch="dockerbuild",
                     output=ghost_artifact,
                     oauth_token=core.SecretValue.secrets_manager('github-token'),
                     trigger=codepipeline_actions.GitHubTrigger.NONE
