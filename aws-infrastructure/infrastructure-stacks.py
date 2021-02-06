@@ -436,7 +436,10 @@ class DockerBuildPipeline(core.Stack):
         ghost_build_project = codebuild.PipelineProject(
             self, "GhostBuildProject",
             role=ghost_build_role,
-            build_spec=codebuild.BuildSpec.from_source_filename("dockerbuild/buildspec.yml")
+            build_spec=codebuild.BuildSpec.from_source_filename("dockerbuild/buildspec.yml"),
+            environment={
+                'privileged': True
+            }
         )
 
         # Create CodePipeline

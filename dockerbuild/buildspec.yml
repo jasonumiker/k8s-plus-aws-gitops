@@ -19,6 +19,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
+      - cd dockerbuild
       - docker build -t $IMAGE_URI .
   post_build:
     commands:
