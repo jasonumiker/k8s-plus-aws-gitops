@@ -21,9 +21,7 @@ k8s-plus-aws-gitops/
   - dockerbuild: for the Dockerfile(s) and associated items required to build the app into a container such as the CodeBuild buildspec.yml(s)
 ````
 
-To start, the aws-app-resources is GitOps enabled with AWS CodePipeline and the k8s-app-resources is GitOps enabled with Weave Flux.
-
-At the moment dockerbuild is not GitOps enabled - I am trying to work out how to have it only fire the build when something in the dockerbuild folder changes rather than re-building the container image when anything in the project changes. I hope to remedy that in a future version.
+The aws-app-resources and dockerbuild folders are GitOps enabled with AWS CodeBuild and CDK and the k8s-app-resources is GitOps enabled with Weave Flux.
 
 The aws-infrastructure folder is what provisions the GitOps for the other two in addition to the VPC and the EKS cluster. At the moment I am kicking off that from a local `cdk deploy` rather than wrapping that in its own CodePipeline.
 

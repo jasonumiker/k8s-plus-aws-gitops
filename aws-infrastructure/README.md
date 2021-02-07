@@ -24,8 +24,6 @@ In order to deploy this you'll need
 
 1. Fork this project to your own GitHub account
 1. Create a personal access token on your GitHub account - https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
-1. Create a secret in AWS Secrets Manager called `github-token`.
-    1. Choose "Other type of secrets" as well as Plaintext. Clear out the box completely (removing the {"": ""}) and then paste in your token.
 1. Run the following command to give your GitHub Access Token to CodeBuild (for DockerBuildPipeline)- `aws codebuild import-source-credentials --server-type GITHUB --auth-type PERSONAL_ACCESS_TOKEN --token <token_value>`
 1. `git clone` down your fork of `k8s-plus-aws-gitops`
 1. `cd k8s-plus-aws-gitops/aws-infrastructure/`

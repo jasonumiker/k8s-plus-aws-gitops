@@ -360,56 +360,32 @@ class AWSAppResourcesPipeline(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
-        
+
         # Create IAM Role For CodeBuild
-        codebuild_role = iam.Role(
-            self, "BuildRole",
+        aws_app_resources_build_role = iam.Role(
+            self, "AWSAppResourcesBuildRole",
             assumed_by=iam.ServicePrincipal("codebuild.amazonaws.com"),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")
             ]
         )
 
-        # Create CodeBuild PipelineProject
-        build_project = codebuild.PipelineProject(
-            self, "BuildProject",
-            role=codebuild_role,
+        # We only want to fire on the master branch and if there is a change in the dockerbuild folder
+        git_hub_source = codebuild.Source.git_hub(
+            owner="jasonumiker",
+            repo="k8s-plus-aws-gitops",
+            webhook=True,
+            webhook_filters=[
+                codebuild.FilterGroup.in_event_of(codebuild.EventAction.PUSH).and_branch_is("master").and_file_path_is("aws-app-resources/*")
+            ]
+        )
+
+        # Create CodeBuild
+        build_project = codebuild.Project(
+            self, "AWSAppResourcesBuildProject",
+            source=git_hub_source,
+            role=aws_app_resources_build_role,
             build_spec=codebuild.BuildSpec.from_source_filename("aws-app-resources/buildspec.yml")
-        )
-
-        # Create CodePipeline
-        pipeline = codepipeline.Pipeline(
-            self, "Pipeline"
-        )
-
-        # Create Artifact
-        artifact = codepipeline.Artifact()
-
-        # Add Source Stage
-        pipeline.add_stage(
-            stage_name="Source",
-            actions=[
-                codepipeline_actions.GitHubSourceAction(
-                    action_name="SourceCodeRepo",
-                    owner="jasonumiker",
-                    repo="k8s-plus-aws-gitops",
-                    output=artifact,
-                    oauth_token=core.SecretValue.secrets_manager('github-token')
-                )
-            ]
-        )
-
-        # Add CodeBuild Stage
-        pipeline.add_stage(
-            stage_name="Deploy",
-            actions=[
-                codepipeline_actions.CodeBuildAction(
-                    action_name="CodeBuildProject",
-                    project=build_project,
-                    type=codepipeline_actions.CodeBuildActionType.BUILD,
-                    input=artifact
-                )
-            ]
         )
 
 class DockerBuildPipeline(core.Stack):
@@ -436,7 +412,7 @@ class DockerBuildPipeline(core.Stack):
         git_hub_source = codebuild.Source.git_hub(
             owner="jasonumiker",
             repo="k8s-plus-aws-gitops",
-            webhook=True, # optional, default: true if `webhookFilteres` were provided, false otherwise
+            webhook=True,
             webhook_filters=[
                 codebuild.FilterGroup.in_event_of(codebuild.EventAction.PUSH).and_branch_is("master").and_file_path_is("dockerbuild/*")
             ]
