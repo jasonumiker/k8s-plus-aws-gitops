@@ -17,16 +17,15 @@ I'd argue that it is still really option 1 because it allows for, if not encoura
 k8s-plus-aws-gitops/
   - aws-infrastructure/ for the AWS-specific infrastructure resources (VPC, EKS cluster, etc.)
   - aws-app-resources/ for the AWS and application-specific resources (databases, caches, queues, etc.)
-  - k8s-infrastructure/ for the Kubernetes-specific infrastructure resources (Namespaces, RBAC, Operators, etc.)
   - k8s-app-resources: for the Kubernetes and application-specific resources (Deployments, Services, Ingresses, etc.)
   - dockerbuild: for the Dockerfile(s) and associated items required to build the app into a container such as the CodeBuild buildspec.yml(s)
 ````
 
 To start, the aws-app-resources is GitOps enabled with AWS CodePipeline and the k8s-app-resources is GitOps enabled with Weave Flux.
 
-The aws-infrastructure and k8s-infrastructure are being treated as a bit more imperative as they will not change often and involve CLIs to provision/upgrade. The aws-infrastructure folder in particular, while it deploys with a CodePipeline/CodeBuild, cannot be re-run once it has been provisioned (is not idempotent) - and so is configured to not re-run on upstream git changes. 
+At the moment dockerbuild is not GitOps enabled - I am trying to work out how to have it only fire the build when something in the dockerbuild folder changes rather than re-building the container image when anything in the project changes. I hope to remedy that in a future version.
 
-I will explore how to extend full GitOps to everything in the next phase.
+The aws-infrastructure folder is what provisions the GitOps for the other two in addition to the VPC and the EKS cluster. At the moment I am kicking off that from a local `cdk deploy` rather than wrapping that in its own CodePipeline.
 
 ## The interactions between AWS and Kubernetes (via a couple Operators/CRDs)
 
