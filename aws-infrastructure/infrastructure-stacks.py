@@ -438,7 +438,7 @@ class DockerBuildPipeline(core.Stack):
             repo="k8s-plus-aws-gitops",
             webhook=True, # optional, default: true if `webhookFilteres` were provided, false otherwise
             webhook_filters=[
-                codebuild.FilterGroup.in_event_of(codebuild.EventAction.PUSH).and_branch_is("dockerbuild-gitops").and_file_path_is("dockerbuild/*")
+                codebuild.FilterGroup.in_event_of(codebuild.EventAction.PUSH).and_branch_is("master").and_file_path_is("dockerbuild/*")
             ]
         )
 
