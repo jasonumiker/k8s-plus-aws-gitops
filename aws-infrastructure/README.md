@@ -2,10 +2,11 @@
 
 We are going to use the [AWS Cloud Development Kit (CDK)](https://docs.aws.amazon.com/cdk/index.html) in Python to deploy our environment in AWS.
 
-There are two CDK Stacks in `infrastructure-stacks.py`
+There are three CDK Stacks in `infrastructure-stacks.py`
 
 - `AWSInfrastructureStack` which creats the VPC and EKS Cluster including deploying a few Helm charts to it once it has been provisioned.
 - `AWSAppResourcesPipeline` which creates a CodePipeline and CodeBuild to have a GitOps managed MySQL RDS to form the back-end for our Ghost applicaiton
+- (Optional) `DockerBuildPipeline` which will create a local private ECR repo and then build the Ghost container image from source into that ECR
 
 ## Prerequistes
 In order to deploy this you'll need
@@ -38,3 +39,4 @@ In order to deploy this you'll need
 1. Run `cdk deploy AWSAppResourcesPipeline` and answer y to the confirmation
 1. Run `fluxctl identity --k8s-fwd-ns kube-system`
 1. Take the ssh key output from that command and [add it as a deploy key on the repo on GitHub](https://docs.fluxcd.io/en/1.21.1/tutorials/get-started/#giving-write-access)
+1. (Optional) Run `cdk deploy DockerBuildPipeline` and answer y to the confirmation

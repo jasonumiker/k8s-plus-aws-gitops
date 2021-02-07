@@ -2,6 +2,7 @@
 
 ## Deployment steps
 
+1. Either remove the ECR image line in `ghost-deployment.yaml` and uncomment the Docker Hub one OR run the DockerPipelineStack in aws-infrastructure to create an ECR repo and build your own ghost image from source into that repo then replace my ECR path with your own.
 1. Run `update-ghost-external-secret.sh` to populate ghost-externalsecret.yaml with the details on the secret in SecretsManager that CDK created for the MySQL RDS
 1. Edit `ghost-ingress.yaml` and:
     1. Put in the ARN of your certificate for either *.[yourdomainname] or ghost.[yourdomainname]
