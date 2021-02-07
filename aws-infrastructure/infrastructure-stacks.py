@@ -356,7 +356,7 @@ class AWSInfrastructureStack(core.Stack):
             }
         )
 
-class AWSAppResourcesPipeline(core.Stack):
+class AWSAppResourcesPipelineStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -388,7 +388,7 @@ class AWSAppResourcesPipeline(core.Stack):
             build_spec=codebuild.BuildSpec.from_source_filename("aws-app-resources/buildspec.yml")
         )
 
-class DockerBuildPipeline(core.Stack):
+class DockerBuildPipelineStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -435,6 +435,6 @@ class DockerBuildPipeline(core.Stack):
 
 app = core.App()
 aws_infrastructure_stack = AWSInfrastructureStack(app, "AWSInfrastructureStack")
-resources_pipeline_stack = AWSAppResourcesPipeline(app, "ResourcesPipelineStack")
-docker_build_pipeline_stack = DockerBuildPipeline(app, "DockerBuildPipeline")
+aws_app_resources_pipeline_stack = AWSAppResourcesPipelineStack(app, "AWSAppResourcesPipelineStack")
+docker_build_pipeline_stack = DockerBuildPipelineStack(app, "DockerBuildPipelineStack")
 app.synth()
