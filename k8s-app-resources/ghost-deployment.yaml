@@ -18,8 +18,7 @@ spec:
     spec:
       containers:
       - name: ghost
-#        image: ghost:3.41.3
-        image: 505070718513.dkr.ecr.ap-southeast-2.amazonaws.com/ghost:43e5864
+        image: ghost:3.41.3
         ports:
         - containerPort: 2368
         env:
