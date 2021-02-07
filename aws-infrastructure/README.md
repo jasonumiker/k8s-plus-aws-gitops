@@ -36,6 +36,10 @@ In order to deploy this you'll need
 1. Look at the Outputs of the AWSInfrastructureStack CloudFormation stack for the aws eks update-kubeconfig command to set up the ~/.kube/config so that your kubectl command will work. Run that command.
 1. Run `kubectl get nodes` to confirm everything is working
 1. Run `cdk deploy AWSAppResourcesPipelineStack` and answer y to the confirmation
+1. Go to the AWS CodeBuild console and kick off the AWSAppResourcesBuildProject by clicking the Start build button (it now has a webhook for any changes in that folder but it doesn't run itself the first time)
 1. Run `fluxctl identity --k8s-fwd-ns kube-system`
 1. Take the ssh key output from that command and [add it as a deploy key on the repo on GitHub](https://docs.fluxcd.io/en/1.21.1/tutorials/get-started/#giving-write-access)
 1. (Optional) Run `cdk deploy DockerBuildPipelineStack` and answer y to the confirmation
+1. Go to the AWS CodeBuild console and kick off the DockerBuildPipelineStack by clicking the Start build button (it now has a webhook for any changes in that folder but it doesn't run itself the first time)
+
+TODO: Tighten the CodeBuild IAM roles to least privege w/IAM instead of current AdministratorAccess Policy
