@@ -1,13 +1,10 @@
 from aws_cdk import (
     aws_codebuild as codebuild,
     aws_iam as iam,
-    aws_codepipeline as codepipeline,
-    aws_codepipeline_actions as codepipeline_actions,
     aws_ec2 as ec2,
     aws_eks as eks,
-    aws_elasticloadbalancingv2 as elbv2,
     aws_ecr as ecr,
-    aws_s3 as s3,
+    aws_elasticsearch as es,
     core
 )
 import os
@@ -22,16 +19,13 @@ class AWSInfrastructureStack(core.Stack):
             cidr="10.0.0.0/16"
         )
 
-        # Create IAM Role For code-server bastion
+        # Create IAM Role For EC2 bastion instance to be able to manage the cluster
         bastion_role = iam.Role(
             self, "BastionRole",
             assumed_by=iam.CompositePrincipal(
                 iam.ServicePrincipal("ec2.amazonaws.com"),
                 iam.AccountRootPrincipal()
-            ),
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")
-            ]
+            )
         )
         self.bastion_role = bastion_role
         # Create EC2 Instance Profile for that Role
@@ -249,7 +243,6 @@ class AWSInfrastructureStack(core.Stack):
         )
 
         # Create the PolicyStatements to attach to the role
-        # I couldn't find a way to get this to work with a PolicyDocument and there are 10 of these
         externaldns_policy_statement_json_1 = {
         "Effect": "Allow",
             "Action": [
@@ -356,12 +349,114 @@ class AWSInfrastructureStack(core.Stack):
             }
         )
 
+        # Deploy Prometheus and Grafana
+        # TODO Replace this with the new AWS Managed Prometheus and Grafana when available
+        eks_cluster.add_helm_chart(
+            "metrics",
+            chart="kube-prometheus-stack",
+            repository="https://prometheus-community.github.io/helm-charts",
+            namespace="monitoring",
+            values={
+                "prometheus": {
+                    "prometheusSpec": {
+                    "storageSpec": {
+                        "volumeClaimTemplate": {
+                        "spec": {
+                            "accessModes": [
+                            "ReadWriteOnce"
+                            ],
+                            "resources": {
+                            "requests": {
+                                "storage": "8Gi"
+                            }
+                            },
+                            "storageClassName": "gp2"
+                        }
+                        }
+                    }
+                    }
+                },
+                "alertmanager": {
+                    "alertmanagerSpec": {
+                    "storage": {
+                        "volumeClaimTemplate": {
+                        "spec": {
+                            "accessModes": [
+                            "ReadWriteOnce"
+                            ],
+                            "resources": {
+                            "requests": {
+                                "storage": "2Gi"
+                            }
+                            },
+                            "storageClassName": "gp2"
+                        }
+                        }
+                    }
+                    }
+                },
+                "grafana": {
+                    "persistence": {
+                        "enabled": "true",
+                        "storageClassName": "gp2"
+                    }
+                }
+            }          
+        )
+
+        # Deploy Fluentbit and Elasticsearch
+        # Deploy an ElasticSearch Domain
+        es_domain = es.Domain(
+            self, "ESDomain",
+            version=es.ElasticsearchVersion.V7_9
+        )
+        # Create the Service Account
+        fluentbit_service_account = eks_cluster.add_service_account(
+            "fluentbit",
+            name="fluentbit",
+            namespace="monitoring"
+        )
+
+        # Define the policy in JSON
+        fluentbit_policy_statement_json_1 = {
+        "Effect": "Allow",
+            "Action": [
+                "es:ESHttp*"
+            ],
+            "Resource": [
+                es_domain.domain_arn
+            ]
+        }
+
+        # Add the policies to the service account
+        fluentbit_service_account.add_to_policy(iam.PolicyStatement.from_json(externalsecrets_policy_statement_json_1))
+
+        # Grant fluentbit access to our ES Domain
+        es_domain.grant_write(fluentbit_service_account)
+
+        eks_cluster.add_helm_chart(
+            "fluent-bit",
+            chart="fluent-bit",
+            repository="https://fluent.github.io/helm-charts",
+            namespace="monitoring",
+            values={
+                "serviceAccount": {
+                    "create": False,
+                    "name": "fluentbit"
+                },
+                "config": {
+                    "outputs": "[OUTPUT]\n    Name            es\n    Match           *\n    Host            "+es_domain.domain_endpoint+"\n    Port            443\n    TLS             On\n    AWS_Auth        On\n    AWS_Region      "+self.region+"\n    Retry_Limit     6\n",
+                }
+            }
+        )    
+
 class AWSAppResourcesPipelineStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         # Create IAM Role For CodeBuild
+        # TODO Make this role's policy least privilege
         aws_app_resources_build_role = iam.Role(
             self, "AWSAppResourcesBuildRole",
             assumed_by=iam.ServicePrincipal("codebuild.amazonaws.com"),
@@ -404,7 +499,7 @@ class DockerBuildPipelineStack(core.Stack):
             self, "GhostBuildRole",
             assumed_by=iam.ServicePrincipal("codebuild.amazonaws.com"),
             managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")
+                iam.ManagedPolicy.from_aws_managed_policy_name("EC2InstanceProfileForImageBuilderECRContainerBuilds")
             ]
         )
 
