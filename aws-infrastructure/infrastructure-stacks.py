@@ -432,54 +432,29 @@ class DockerBuildPipeline(core.Stack):
             ]
         )
 
-        # Create CodeBuild PipelineProject
-        ghost_build_project = codebuild.PipelineProject(
+        # We only want to fire on the master branch and if there is a change in the dockerbuild folder
+        git_hub_source = codebuild.Source.git_hub(
+            owner="jasonumiker",
+            repo="k8s-plus-aws-gitops",
+            webhook=True, # optional, default: true if `webhookFilteres` were provided, false otherwise
+            webhook_filters=[
+                codebuild.FilterGroup.in_event_of(codebuild.EventAction.PUSH).and_branch_is("dockerbuild-gitops").and_file_path_is("dockerbuild/*")
+            ]
+        )
+
+        # Create CodeBuild
+        build_project = codebuild.Project(
             self, "GhostBuildProject",
+            source=git_hub_source,
             role=ghost_build_role,
             build_spec=codebuild.BuildSpec.from_source_filename("dockerbuild/buildspec.yml"),
             environment={
-                'privileged': True
+                'privileged': True,
+            },
+            environment_variables={
+                'AWS_ACCOUNT_ID': codebuild.BuildEnvironmentVariable(value=self.account),
+                'IMAGE_REPO_NAME': codebuild.BuildEnvironmentVariable(value=ghost_repo.repository_name)
             }
-        )
-
-        # Create CodePipeline
-        ghost_pipeline = codepipeline.Pipeline(
-            self, "GhostPipeline"
-        )
-
-        # Create Artifact
-        ghost_artifact = codepipeline.Artifact()
-
-        # Add Source Stage
-        ghost_pipeline.add_stage(
-            stage_name="Source",
-            actions=[
-                codepipeline_actions.GitHubSourceAction(
-                    action_name="SourceCodeRepo",
-                    owner="jasonumiker",
-                    repo="k8s-plus-aws-gitops",
-                    output=ghost_artifact,
-                    oauth_token=core.SecretValue.secrets_manager('github-token'),
-                    trigger=codepipeline_actions.GitHubTrigger.NONE
-                )
-            ]
-        )
-
-        # Add CodeBuild Stage
-        ghost_pipeline.add_stage(
-            stage_name="ContainerBuild",
-            actions=[
-                codepipeline_actions.CodeBuildAction(
-                    action_name="CodeBuildProject",
-                    project=ghost_build_project,
-                    type=codepipeline_actions.CodeBuildActionType.BUILD,
-                    input=ghost_artifact,
-                    environment_variables={
-                        'AWS_ACCOUNT_ID': codebuild.BuildEnvironmentVariable(value=self.account),
-                        'IMAGE_REPO_NAME': codebuild.BuildEnvironmentVariable(value=ghost_repo.repository_name)
-                    }
-                )
-            ]
         )
 
 app = core.App()
