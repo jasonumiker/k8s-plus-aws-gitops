@@ -4,14 +4,13 @@ This is a prototype for an approach for GitOps that covers both AWS Managed Serv
 
 It represents the AWS-specific resources (such as VPCs, EKS clusters and databases) via CDK/CloudFormation in one set of folders and another set for the Kubernetes equivalents. There are then two separate tools ([CodePipeline](https://aws.amazon.com/codepipeline/) and [Flux](https://github.com/fluxcd/flux)) that reconcile the different types of declarative Infrastructure-as-Code in this project - but all the end-user needs to know is to push/merge their changes to the Git repo.
 
-It is an example or prototype for an approach that is mostly option 1 (Kubernetes and the cloud are managed separately) with a little option 2 (managing the cloud from Kubernetes with Operators) from my recent blog post - https://medium.com/@jason.umiker/the-three-paths-of-kubernetes-in-the-cloud-a6e88a321e2e.
-
-I'd argue that it is still really option 1 because it allows for, if not encourages, CloudFormation/CDK for the managed cloud services like RDS rather than trying to do everything with Operators. Where it uses Operators it is to do things like update CNAMEs and manage Targets for an ALB rather than fully abstract the underlying cloud.
-
 ![](architecture-diagram.png)
 ![](architecture-diagram-2.png)
 
-## The GitOps folder structure is:
+## Gettting started
+There are README.mds in each subfolder explaining how that section works and how to deploy it.
+
+The GitOps folder structure is:
 
 ```
 k8s-plus-aws-gitops/
@@ -21,9 +20,7 @@ k8s-plus-aws-gitops/
   - dockerbuild: for the Dockerfile(s) and associated items required to build the app into a container such as the CodeBuild buildspec.yml(s)
 ````
 
-The aws-app-resources and dockerbuild folders are GitOps enabled with AWS CodeBuild and CDK and the k8s-app-resources is GitOps enabled with Weave Flux.
-
-The aws-infrastructure folder is what provisions the GitOps for the other two in addition to the VPC and the EKS cluster. At the moment I am kicking off that from a local `cdk deploy` rather than wrapping that in its own CodePipeline.
+Start in the aws-infrastructure folder as it deploys the AWS and EKS environments as well as deploys the pipelines for a GitOps appraoch of aws-app-resources, k8s-app-resources and dockerbuild.
 
 ## The interactions between AWS and Kubernetes (via a couple Operators/CRDs)
 
