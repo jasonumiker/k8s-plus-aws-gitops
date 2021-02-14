@@ -31,7 +31,7 @@ In order to deploy this you'll need
     1. Update the flux Helm chart values to point at your git repo
     1. Update the owner on the Soure pipeline stage to your GitHub username
 1. Run `pip install -r requirements.txt` to add the necessary python components for CDK.
-1. Run `cdk boostrap` to create the S3 artifact bucket etc. into the account
+1. Run `cdk bootstrap` to create the S3 artifact bucket etc. into the account
 1. Run `cdk deploy AWSInfrastructureStack` and answer y to the confirmation
 1. Look at the Outputs of the AWSInfrastructureStack CloudFormation stack for the aws eks update-kubeconfig command to set up the ~/.kube/config so that your kubectl command will work. Run that command.
 1. Run `kubectl get nodes` to confirm everything is working
