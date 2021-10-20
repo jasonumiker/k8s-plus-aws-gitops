@@ -1,7 +1,0 @@
-aws-cdk.core
-aws-cdk.aws_codebuild
-aws-cdk.aws_iam
-aws-cdk.aws_ec2
-aws-cdk.aws_eks
-aws-cdk.aws_ecr
-aws-cdk.aws_elasticsearch
