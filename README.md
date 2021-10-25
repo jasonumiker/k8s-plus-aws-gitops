@@ -1,6 +1,6 @@
 # This repo has been moved / replaced
 
-I am also an author of the new EKS Quick Start for CDK and included and updated version of this example in that as a demo-app that works together with the wider EKS template there.
+I am also an author of the new EKS Quick Start for CDK and included an updated version of this example in that as a demo-app that works together with the wider EKS template there.
 
 Refer to https://github.com/aws-quickstart/quickstart-eks-cdk-python and https://github.com/aws-quickstart/quickstart-eks-cdk-python/tree/main/demo-apps#ghost
 
